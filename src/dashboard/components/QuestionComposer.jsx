@@ -1,7 +1,9 @@
+import { useState } from 'react'
+import QuestionEditor from './QuestionEditor'
 import Icon from '../../components/Icon'
-import { noteStyle, noteColors, stickers } from '../dashboardData'
+import { noteStyle, noteColors } from '../dashboardData'
 
-// 질문 내용·주제·색·스티커를 입력받고 등록 전 메모 모습을 보여준다.
+// 질문 내용·주제·색을 입력받고 등록 전 메모 모습을 보여준다.
 export default function QuestionComposer({
   columns,
   composeColumn,
@@ -10,12 +12,12 @@ export default function QuestionComposer({
   setDraft,
   color,
   setColor,
-  sticker,
-  setSticker,
   input,
   submit,
   notice,
 }) {
+  const [valid, setValid] = useState(false)
+
   return (
     <section className="panel compose-panel" aria-labelledby="compose-heading">
       <div className="panel-header">
@@ -38,7 +40,13 @@ export default function QuestionComposer({
         </div>
       </div>
       <div className="composer-bottom">
-        <form className="note-form" onSubmit={submit}>
+        <form
+          className="note-form"
+          onSubmit={(event) => {
+            if (valid) submit(event)
+            else event.preventDefault()
+          }}
+        >
           <label className="column-select-label" htmlFor="compose-column">
             질문을 붙일 곳
           </label>
@@ -56,29 +64,14 @@ export default function QuestionComposer({
           </select>
           <div className="draft-note" style={noteStyle(color)}>
             <div className="note-author">
-              <span className="note-sticker" aria-hidden="true">
-                {sticker}
-              </span>
-              <span>
-                익명의 관객<small>내 메모 미리보기</small>
-              </span>
+              <span>익명의 관객</span>
             </div>
-            <label htmlFor="question" className="sr-only">
-              질문 내용
-            </label>
-            <textarea
-              ref={input}
-              id="question"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              maxLength={240}
-              placeholder="지금 떠오른 질문을 여기에 적어주세요..."
-              required
+            <QuestionEditor
+              draft={draft}
+              setDraft={setDraft}
+              input={input}
+              onValidityChange={setValid}
             />
-            <div className="draft-footer">
-              <span>나의 질문</span>
-              <span>{draft.length} / 240</span>
-            </div>
           </div>
           <fieldset className="note-options">
             <legend>메모지 색</legend>
@@ -99,31 +92,15 @@ export default function QuestionComposer({
               ))}
             </div>
           </fieldset>
-          <fieldset className="note-options">
-            <legend>작은 포인트</legend>
-            <div className="sticker-options">
-              {stickers.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  aria-label={option + ' 스티커'}
-                  aria-pressed={sticker === option}
-                  onClick={() => setSticker(option)}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </fieldset>
           <button
             type="submit"
             className="primary-button post-note"
-            disabled={!draft.trim()}
+            disabled={!valid || !draft.trim()}
           >
             <Icon name="plus" size={17} /> 보드에 붙이기
           </button>
           <p className="notice" role="status">
-            {notice || '로그인 없이, 익명으로 남길 수 있어요.'}
+            {notice}
           </p>
         </form>
       </div>

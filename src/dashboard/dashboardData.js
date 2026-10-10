@@ -6,7 +6,6 @@ export const noteColors = [
   { id: 'lavender', label: '라벤더', value: '#ece4ff' },
   { id: 'white', label: '화이트', value: '#ffffff' },
 ]
-export const stickers = ['💬', '💡', '🙋', '✨', '🌱', '🎤']
 const defaultColumns = [
   { id: 'general', title: '자유롭게 질문해요' },
   { id: 'talk', title: '오늘의 발표' },
@@ -51,7 +50,6 @@ const examples = [
   columnId: defaultColumns[index % 3].id,
   number: index + 1,
   color: noteColors[index].id,
-  sticker: stickers[index],
 }))
 
 // 기존 저장 키를 유지해 폴더 구조가 바뀌어도 질문이 보존되도록 한다.
@@ -75,10 +73,20 @@ export function loadNotes() {
   return examples
 }
 
+// 기본 색 ID와 직접 선택한 HEX를 모두 지원해 기존 메모 색도 보존한다.
 export function noteStyle(color) {
+  const value = /^#[0-9a-f]{6}$/i.test(color)
+    ? color
+    : (noteColors.find((item) => item.id === color) || noteColors[0]).value
+  const rgb = [1, 3, 5].map(
+    (index) => parseInt(value.slice(index, index + 2), 16) / 255,
+  )
+  const linear = rgb.map((channel) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+  )
+  const luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
   return {
-    '--note-color': (
-      noteColors.find((item) => item.id === color) || noteColors[0]
-    ).value,
+    '--note-color': value,
+    '--note-ink': luminance > 0.179 ? '#171717' : '#ffffff',
   }
 }

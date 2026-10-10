@@ -10,7 +10,6 @@ export default function useDashboard() {
   const [editingColumn, setEditingColumn] = useState(null)
   const [draft, setDraft] = useState('')
   const [color, setColor] = useState('cream')
-  const [sticker, setSticker] = useState('💬')
   const [selectedId, setSelectedId] = useState(null)
   const [presenting, setPresenting] = useState(false)
   const [slot, setSlot] = useState(null)
@@ -82,7 +81,6 @@ export default function useDashboard() {
       number: Math.max(0, ...questions.map((note) => note.number)) + 1,
       text: draft.trim(),
       color,
-      sticker,
       own: true,
     }
     setQuestions((current) => [item, ...current])
@@ -137,8 +135,6 @@ export default function useDashboard() {
     setDraft,
     color,
     setColor,
-    sticker,
-    setSticker,
     selectedId,
     openQuestion,
     presenting,
