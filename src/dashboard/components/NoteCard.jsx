@@ -39,21 +39,21 @@ export default function NoteCard({
             {item.own ? '내 질문' : '부소마 학생 ' + String(item.number)}
           </span>
         </span>
-        <button
-          type="button"
-          className="drag-handle"
-          disabled={drawing}
-          title="끌어서 순서 변경 · 방향키로 이동"
-          aria-label={'질문 ' + item.number + ' 순서 변경, 방향키로 이동'}
-          onPointerDown={(event) => startDrag(event, item)}
-          onPointerMove={dragMove}
-          onPointerUp={finishDrag}
-          onPointerCancel={cancelDrag}
-          onLostPointerCapture={cancelDrag}
-          onKeyDown={(event) => moveWithKeyboard(event, item)}
-        >
-          <Icon name="grip" />
-        </button>
+        {item.own && (
+          <button
+            type="button"
+            className="drag-handle"
+            disabled={drawing}
+            onPointerDown={(event) => startDrag(event, item)}
+            onPointerMove={dragMove}
+            onPointerUp={finishDrag}
+            onPointerCancel={cancelDrag}
+            onLostPointerCapture={cancelDrag}
+            onKeyDown={(event) => moveWithKeyboard(event, item)}
+          >
+            <Icon name="grip" />
+          </button>
+        )}
       </div>
       <button
         className="memo-read"

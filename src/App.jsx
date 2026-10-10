@@ -69,7 +69,7 @@ export default function App() {
           }}
           aria-hidden="true"
         >
-          <span>{drag.item.sticker} 질문 이동 중</span>
+          <span>{drag.item.sticker} 내 질문</span>
           <p>{drag.item.text}</p>
         </div>
       )}

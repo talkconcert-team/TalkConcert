@@ -123,7 +123,7 @@ svg { flex-shrink: 0; }
 .memo-note.drop-before::before, .memo-note.drop-after::after { content: ''; position: absolute; top: -4px; bottom: -4px; width: 3px; border-radius: 4px; background: #786ad3; box-shadow: 0 0 0 3px #786ad312; }
 .memo-note.drop-before::before { left: -13px; }
 .memo-note.drop-after::after { right: -13px; }
-.drag-preview { position: fixed; pointer-events: none; z-index: 100; width: 220px; padding: 19px; border-radius: 12px; background: var(--note-color); box-shadow: 0 20px 45px #27233326; transform: rotate(3deg); border: 1px solid #0000000b; }
+.drag-preview { position: fixed; pointer-events: none; z-index: 100; width: 220px; padding: 19px; border-radius: 12px; background: var(--note-color); box-shadow: 0 20px 45px #27233326; border: 1px solid #0000000b; }
 .drag-preview span { color: #777064; font-size: 11px; }
 .drag-preview p { font-size: 14px; line-height: 1.7; margin: 12px 0 0; max-height: 120px; overflow: hidden; }
 .memo-board { background-image: none; background-color: #f4f3f0; padding: 24px; }
