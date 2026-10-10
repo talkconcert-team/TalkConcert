@@ -1,3 +1,4 @@
+import QuestionMarkdown from './QuestionMarkdown'
 import { useEffect, useRef } from 'react'
 import { SLOT_DURATION } from '../slotDraw'
 import './QuestionSlot.css'
@@ -40,7 +41,7 @@ export default function QuestionSlot({ slot, onFinish }) {
       >
         {slot.items.map((item, index) => (
           <div className="slot-question" key={`${item.id}-${index}`}>
-            {item.text}
+            <QuestionMarkdown>{item.text}</QuestionMarkdown>
           </div>
         ))}
       </div>

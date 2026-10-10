@@ -1,3 +1,4 @@
+import QuestionMarkdown from './QuestionMarkdown'
 import Icon from '../../components/Icon'
 import { noteStyle } from '../dashboardData'
 
@@ -21,7 +22,6 @@ export default function NoteCard({
       style={noteStyle(item.color)}
       className={
         'memo-note' +
-        (selectedId === item.id ? ' selected' : '') +
         (drag?.item.id === item.id ? ' is-dragging' : '') +
         (dropTarget?.id === item.id
           ? dropTarget.after
@@ -32,9 +32,6 @@ export default function NoteCard({
     >
       <div className="memo-top">
         <span className="note-author">
-          <span className="note-sticker" aria-hidden="true">
-            {item.sticker}
-          </span>
           <span>
             {item.own ? '내 질문' : '부소마 학생 ' + String(item.number)}
           </span>
@@ -61,11 +58,8 @@ export default function NoteCard({
         disabled={drawing}
         aria-pressed={selectedId === item.id}
       >
-        <span className="memo-text">{item.text}</span>
-        <span className="memo-footer">
-          <span className="memo-status">
-            {selectedId === item.id ? '선택한 질문' : '눌러서 크게 보기'}
-          </span>
+        <span className="memo-text">
+          <QuestionMarkdown>{item.text}</QuestionMarkdown>
         </span>
       </button>
     </article>

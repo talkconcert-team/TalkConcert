@@ -1,0 +1,56 @@
+.question-markdown {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.question-markdown strong {
+  font-weight: 750;
+}
+.question-markdown em {
+  font-style: italic;
+}
+.question-markdown .markdown-p,
+.question-markdown .markdown-ul,
+.question-markdown .markdown-ol,
+.question-markdown .markdown-pre,
+.question-markdown .markdown-blockquote {
+  display: block;
+  margin: 0 0 0.5em;
+}
+.question-markdown > :last-child {
+  margin-bottom: 0;
+}
+.question-markdown .markdown-li {
+  display: list-item;
+  margin-left: 1.3em;
+}
+.question-markdown .markdown-ol {
+  list-style-type: decimal;
+}
+.question-markdown .markdown-blockquote {
+  border-left: 3px solid currentColor;
+  padding-left: 0.7em;
+  opacity: 0.85;
+}
+.question-markdown code {
+  font-family: monospace;
+  background: #8882;
+  border-radius: 3px;
+  padding: 0.1em 0.25em;
+}
+.question-markdown
+  :is(
+    .markdown-h1,
+    .markdown-h2,
+    .markdown-h3,
+    .markdown-h4,
+    .markdown-h5,
+    .markdown-h6
+  ) {
+  display: block;
+  font-weight: 750;
+  margin-bottom: 0.5em;
+}
+
+/* 파서가 블록 사이에 넣은 줄바꿈은 접고, 실제 문단 안의 줄바꿈만 보존한다. */
+.question-markdown .markdown-p { white-space: pre-wrap; }
+.question-markdown .markdown-li > .markdown-p:last-child { margin-bottom: 0; }

@@ -1,3 +1,4 @@
+import QuestionMarkdown from './dashboard/components/QuestionMarkdown'
 import './App.css'
 import { noteStyle } from './dashboard/dashboardData'
 import useDashboard from './dashboard/hooks/useDashboard'
@@ -36,8 +37,6 @@ export default function App() {
             setDraft={state.setDraft}
             color={state.color}
             setColor={state.setColor}
-            sticker={state.sticker}
-            setSticker={state.setSticker}
             input={state.input}
             submit={state.submit}
             notice={state.notice}
@@ -69,8 +68,10 @@ export default function App() {
           }}
           aria-hidden="true"
         >
-          <span>{drag.item.sticker} 내 질문</span>
-          <p>{drag.item.text}</p>
+          <span>내 질문</span>
+          <p>
+            <QuestionMarkdown>{drag.item.text}</QuestionMarkdown>
+          </p>
         </div>
       )}
       {state.presenting && (
