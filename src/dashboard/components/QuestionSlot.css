@@ -1,5 +1,5 @@
 .slot-machine {
-  --slot-height: 140px;
+  --slot-height: 190px;
   position: relative;
   width: 100%;
   height: min(48svh, 360px);
@@ -16,14 +16,25 @@
   animation: slot-roll-to-center var(--slot-duration)
     cubic-bezier(0.08, 0.72, 0.16, 1) forwards;
 }
+.slot-track.is-settling .slot-question--surrounding {
+  animation: slot-fade-surroundings 450ms ease-out forwards;
+}
 .slot-question {
   height: var(--slot-height);
   display: flex;
   align-items: center;
   overflow: hidden;
-  font-size: clamp(24px, 3.5vw, 52px);
+  font-size: var(--presentation-question-size, clamp(26px, 4vw, 70px));
   line-height: 1.4;
   overflow-wrap: anywhere;
+}
+@keyframes slot-fade-surroundings {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 @keyframes slot-roll-to-center {
   from {

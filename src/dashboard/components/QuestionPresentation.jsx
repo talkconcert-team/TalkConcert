@@ -35,18 +35,14 @@ export default function QuestionPresentation({
       >
         <Icon name="close" /> 작게 보기
       </button>
-      <span>
-        TalkConcert / 오늘의 질문
-      </span>
-      {slot ? (
-        <QuestionSlot slot={slot} onFinish={finishDraw} />
-      ) : (
-        selected && (
-          <>
-            <blockquote>{selected.text}</blockquote>
-          </>
-        )
-      )}
+      <div className="presentation-content">
+        <span>TalkConcert / 오늘의 질문</span>
+        {slot ? (
+          <QuestionSlot slot={slot} onFinish={finishDraw} />
+        ) : (
+          selected && <blockquote>{selected.text}</blockquote>
+        )}
+      </div>
     </dialog>
   )
 }
