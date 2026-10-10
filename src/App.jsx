@@ -191,7 +191,6 @@ export default function App() {
     setPresenting(false)
     if (drawing) {
       setDrawing(false)
-      setNotice('추첨을 취소했어요.')
     }
   }, [drawing])
 
@@ -312,13 +311,13 @@ export default function App() {
                   </div>
                   <button className="column-add" onClick={() => composeIn(column.id)} aria-label={column.title + '에 질문 추가'}><Icon name="plus" size={18} /></button>
                   <div className="column-notes">
-                {visibleQuestions.filter(item => columnFor(item) === column.id).map(item => <article key={item.id} data-note-id={item.id} style={noteStyle(item.color)} className={'memo-note' + (selectedId === item.id ? ' selected' : '') + (item.answered ? ' is-answered' : '') + (drag?.item.id === item.id ? ' is-dragging' : '') + (dropTarget?.id === item.id ? dropTarget.after ? ' drop-after' : ' drop-before' : '')}>
-                  <div className="memo-top"><span className="note-author"><span className="note-sticker" aria-hidden="true">{item.sticker}</span><span>익명의 관객<small>{item.own ? '내 질문' : '관객 질문'}</small></span></span><button type="button" className="drag-handle" disabled={drawing} title="끌어서 순서 변경 · 방향키로 이동" aria-label={'질문 ' + item.number + ' 순서 변경, 방향키로 이동'} onPointerDown={event => startDrag(event, item)} onPointerMove={dragMove} onPointerUp={finishDrag} onPointerCancel={cancelDrag} onLostPointerCapture={cancelDrag} onKeyDown={event => moveWithKeyboard(event, item)}><Icon name="grip" /></button></div>
-                  <button className="memo-read" onClick={() => setSelectedId(item.id)} disabled={drawing} aria-pressed={selectedId === item.id}>
-                    <span className="memo-text">{item.text}</span>
-                    <span className="memo-footer"><span>Q{String(item.number).padStart(2, '0')}</span><span className="memo-status">{item.answered ? <><Icon name="check" size={12} /> 답변 완료</> : selectedId === item.id ? '함께 읽는 중' : '답변 대기'}</span></span>
-                  </button>
-                </article>)}
+                    {visibleQuestions.filter(item => columnFor(item) === column.id).map(item => <article key={item.id} data-note-id={item.id} style={noteStyle(item.color)} className={'memo-note' + (selectedId === item.id ? ' selected' : '') + (item.answered ? ' is-answered' : '') + (drag?.item.id === item.id ? ' is-dragging' : '') + (dropTarget?.id === item.id ? dropTarget.after ? ' drop-after' : ' drop-before' : '')}>
+                      <div className="memo-top"><span className="note-author"><span className="note-sticker" aria-hidden="true">{item.sticker}</span><span>익명의 관객<small>{item.own ? '내 질문' : '관객 질문'}</small></span></span><button type="button" className="drag-handle" disabled={drawing} title="끌어서 순서 변경 · 방향키로 이동" aria-label={'질문 ' + item.number + ' 순서 변경, 방향키로 이동'} onPointerDown={event => startDrag(event, item)} onPointerMove={dragMove} onPointerUp={finishDrag} onPointerCancel={cancelDrag} onLostPointerCapture={cancelDrag} onKeyDown={event => moveWithKeyboard(event, item)}><Icon name="grip" /></button></div>
+                      <button className="memo-read" onClick={() => setSelectedId(item.id)} disabled={drawing} aria-pressed={selectedId === item.id}>
+                        <span className="memo-text">{item.text}</span>
+                        <span className="memo-footer"><span>Q{String(item.number).padStart(2, '0')}</span><span className="memo-status">{item.answered ? <><Icon name="check" size={12} /> 답변 완료</> : selectedId === item.id ? '함께 읽는 중' : '답변 대기'}</span></span>
+                      </button>
+                    </article>)}
                   </div>
                   {!visibleQuestions.some(item => columnFor(item) === column.id) && <p className="column-empty">{filter === 'all' ? '첫 질문을 붙여주세요' : '이 상태의 질문이 없어요'}</p>}
                 </section>)}
