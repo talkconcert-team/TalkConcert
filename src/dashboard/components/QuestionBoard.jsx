@@ -28,7 +28,7 @@ export default function QuestionBoard({
         </button>
       </div>
       <p className="board-intro">
-        주제에 맞춰 질문을 작성해 주세요.
+        평소에 궁금했거나 고민하던 내용들을 편하게 작성해 주세요 
       </p>
       <div className="memo-board" ref={board}>
         <div className="shelf-board">
