@@ -75,7 +75,7 @@ export default function BoardColumn({
           ))}
       </div>
       {!questions.some((item) => columnFor(item) === column.id) && (
-        <p className="column-empty">첫 질문을 붙여주세요</p>
+        <p className="column-empty">첫 질문을 남겨주세요</p>
       )}
     </section>
   )

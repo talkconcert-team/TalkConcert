@@ -12,9 +12,7 @@ export default function DashboardHeader({
       {' '}
       <header className="topbar">
         <div className="breadcrumb">
-          <span>TalkConcert</span>
-          <span className="slash">/</span>
-          <h1>오늘의 토크 콘서트</h1>
+          <span>TalkConcert 2026</span>
         </div>
         <span className="session-label">Q&A</span>
         <div className="header-actions">

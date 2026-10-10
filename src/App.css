@@ -114,7 +114,7 @@ svg { flex-shrink: 0; }
 .memo-read { background: none; border: 0; display: flex; flex: 1; flex-direction: column; align-items: stretch; padding: 0 19px 16px; gap: 0; text-align: left; border-radius: 0 0 12px 12px; }
 .memo-text { font-size: 15px; line-height: 1.85; letter-spacing: -.02em; padding: 22px 0 25px; }
 .memo-footer { width: 100%; border-top: 0; color: #65635e; font-size: 10px; }
-.memo-status { padding: 4px 7px; border-radius: 5px; background: #ffffff70; }
+.memo-status { margin-left: auto; padding: 4px 7px; border-radius: 5px; background: #ffffff70; }
 .memo-note.selected { outline: 2px solid #7a70ca; outline-offset: 3px; box-shadow: 0 7px 20px #5b548616; }
 .memo-note.is-dragging { opacity: .35; outline: 1px dashed #8178c6; }
 .drag-handle { flex-shrink: 0; width: 32px; height: 36px; padding: 0; border: 0; background: transparent; border-radius: 6px; color: #767268; cursor: grab; touch-action: none; user-select: none; }

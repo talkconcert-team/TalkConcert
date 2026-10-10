@@ -36,7 +36,7 @@ export default function NoteCard({
             {item.sticker}
           </span>
           <span>
-            익명의 관객<small>{item.own ? '내 질문' : '관객 질문'}</small>
+            {item.own ? '내 질문' : '부소마 학생 ' + String(item.number)}
           </span>
         </span>
         <button
@@ -63,7 +63,6 @@ export default function NoteCard({
       >
         <span className="memo-text">{item.text}</span>
         <span className="memo-footer">
-          <span>Q{String(item.number).padStart(2, '0')}</span>
           <span className="memo-status">
             {selectedId === item.id ? '선택한 질문' : '눌러서 크게 보기'}
           </span>
