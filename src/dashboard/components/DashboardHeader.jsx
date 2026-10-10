@@ -3,7 +3,6 @@ import Icon from '../../components/Icon'
 // 전체 질문 수와 선택한 질문의 크게 보기 진입점을 표시한다.
 export default function DashboardHeader({
   questions,
-  previewButton,
   setPresenting,
   selected,
   drawing,
@@ -31,7 +30,6 @@ export default function DashboardHeader({
         </div>
         <span className="toolbar-caption">질문을 남기고, 함께 이야기해요.</span>
         <button
-          ref={previewButton}
           className="text-button preview-button"
           onClick={() => setPresenting(true)}
           disabled={!selected || drawing}

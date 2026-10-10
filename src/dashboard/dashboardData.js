@@ -33,22 +33,18 @@ const examples = [
   {
     id: '1',
     text: '새로운 아이디어를 실행에 옮길 때 가장 먼저 확인하는 것은 무엇인가요?',
-    answered: false,
   },
   {
     id: '2',
     text: '지금의 커리어를 선택하게 된 결정적인 계기가 궁금해요.',
-    answered: false,
   },
   {
     id: '3',
     text: '실패했던 경험 중 지금 가장 도움이 된 경험은 무엇인가요?',
-    answered: false,
   },
   {
     id: '4',
     text: '좋은 팀을 만들기 위해 가장 중요하게 생각하는 기준이 있나요?',
-    answered: true,
   },
 ].map((item, index) => ({
   ...item,
@@ -69,7 +65,6 @@ export function loadNotes() {
         (item) =>
           typeof item.id === 'string' &&
           typeof item.text === 'string' &&
-          typeof item.answered === 'boolean' &&
           Number.isInteger(item.number),
       )
     )

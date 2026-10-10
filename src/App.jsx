@@ -1,4 +1,3 @@
-import { useRef, useState } from 'react'
 import './App.css'
 import { noteStyle } from './dashboard/dashboardData'
 import useDashboard from './dashboard/hooks/useDashboard'
@@ -7,30 +6,26 @@ import DashboardSidebar from './dashboard/components/DashboardSidebar'
 import DashboardHeader from './dashboard/components/DashboardHeader'
 import QuestionComposer from './dashboard/components/QuestionComposer'
 import QuestionBoard from './dashboard/components/QuestionBoard'
-import QuestionDetail from './dashboard/components/QuestionDetail'
 import QuestionPresentation from './dashboard/components/QuestionPresentation'
 
 // 대시보드 상태를 각 패널에 연결하고, 크게 보기와 드래그 미리보기를 배치한다.
 export default function App() {
   const state = useDashboard()
   const dragControls = useNoteDrag(state)
-  const [presenting, setPresenting] = useState(false)
-  const previewButton = useRef(null)
   const { drag } = dragControls
   return (
     <div className="app-shell">
       <DashboardSidebar
         drawing={state.drawing}
         draw={state.draw}
-        waiting={state.waiting}
+        questions={state.questions}
       />
       <div className="app-main">
         <DashboardHeader
           questions={state.questions}
           selected={state.selected}
           drawing={state.drawing}
-          previewButton={previewButton}
-          setPresenting={setPresenting}
+          setPresenting={state.setPresenting}
         />
         <main className="workspace">
           <QuestionComposer
@@ -50,26 +45,17 @@ export default function App() {
           <QuestionBoard
             questions={state.questions}
             addColumn={state.addColumn}
-            filter={state.filter}
-            setFilter={state.setFilter}
             board={state.board}
             columns={state.columns}
             columnFor={state.columnFor}
-            visibleQuestions={state.visibleQuestions}
             editingColumn={state.editingColumn}
             renameColumn={state.renameColumn}
             setEditingColumn={state.setEditingColumn}
             composeIn={state.composeIn}
             selectedId={state.selectedId}
-            setSelectedId={state.setSelectedId}
+            openQuestion={state.openQuestion}
             drawing={state.drawing}
             dragControls={dragControls}
-          />
-          <QuestionDetail
-            selected={state.selected}
-            drawing={state.drawing}
-            complete={state.complete}
-            waiting={state.waiting}
           />
         </main>
       </div>
@@ -87,11 +73,12 @@ export default function App() {
           <p>{drag.item.text}</p>
         </div>
       )}
-      {presenting && state.selected && (
+      {state.presenting && (
         <QuestionPresentation
           selected={state.selected}
-          setPresenting={setPresenting}
-          previewButton={previewButton}
+          slot={state.slot}
+          finishDraw={state.finishDraw}
+          closePresentation={state.closePresentation}
         />
       )}
     </div>
