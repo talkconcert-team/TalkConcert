@@ -32,7 +32,7 @@ export default function useNoteDrag({
   }, [])
 
   function startDrag(event, item) {
-    if (event.button !== 0 || drawing) return
+    if (event.button !== 0 || drawing || !item.own) return
     event.preventDefault()
     // 손잡이 밖으로 포인터가 나가도 이동과 놓기 이벤트를 계속 받는다.
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -89,6 +89,7 @@ export default function useNoteDrag({
   }
 
   function moveWithKeyboard(event, item) {
+    if (!item.own) return
     const direction = {
       ArrowLeft: -1,
       ArrowUp: -1,

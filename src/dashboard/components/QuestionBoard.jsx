@@ -21,14 +21,14 @@ export default function QuestionBoard({
     <section className="panel list-panel" aria-labelledby="list-heading">
       <div className="panel-header">
         <h2 id="list-heading">
-          우리의 질문 <span className="muted">({questions.length})</span>
+          오늘의 질문 <span className="muted">({questions.length})</span>
         </h2>
         <button className="primary-button" onClick={addColumn}>
           <Icon name="plus" size={16} /> 주제 추가
         </button>
       </div>
       <p className="board-intro">
-        주제 아래에 질문을 붙여보세요. 메모를 다른 주제로 옮겨도 좋아요.
+        평소에 궁금했거나 고민하던 내용들을 편하게 작성해 주세요 
       </p>
       <div className="memo-board" ref={board}>
         <div className="shelf-board">
@@ -48,9 +48,6 @@ export default function QuestionBoard({
               dragControls={dragControls}
             />
           ))}
-          <button className="new-column" onClick={addColumn}>
-            <Icon name="plus" size={16} /> 주제 추가
-          </button>
         </div>
         {!questions.length && (
           <p className="board-empty">첫 번째 질문을 남겨주세요.</p>

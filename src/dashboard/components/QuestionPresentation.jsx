@@ -36,8 +36,7 @@ export default function QuestionPresentation({
         <Icon name="close" /> 작게 보기
       </button>
       <span>
-        TalkConcert /{' '}
-        {slot ? '관객 질문' : `Q${String(selected?.number).padStart(2, '0')}`}
+        TalkConcert / 오늘의 질문
       </span>
       {slot ? (
         <QuestionSlot slot={slot} onFinish={finishDraw} />
@@ -45,7 +44,6 @@ export default function QuestionPresentation({
         selected && (
           <>
             <blockquote>{selected.text}</blockquote>
-            <p>익명의 관객</p>
           </>
         )
       )}
