@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { moveNote } from './lib/board'
 
@@ -16,6 +16,7 @@ const defaultColumns = [
   { id: 'talk', title: '오늘의 발표' },
   { id: 'experience', title: '경험이 궁금해요' },
 ]
+const slotItemHeight = 140
 function loadColumns() {
   try {
     const saved = JSON.parse(localStorage.getItem('talkconcert-columns-v1'))
@@ -51,7 +52,6 @@ function Icon({ name, size = 18 }) {
     arrow: <path d="M12 20V4m-6 6 6-6 6 6" />,
     check: <path d="m5 12 4 4L19 6" />,
     edit: <><path d="m14 4 6 6M4 20l5-1L21 7a2 2 0 0 0-4-4L5 15Z" /></>,
-    expand: <path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" />,
     close: <path d="m6 6 12 12M6 18 18 6" />,
     chevron: <path d="m8 10 4 4 4-4" />,
     folder: <path d="M3 6a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v10H3Z" />,
@@ -76,10 +76,10 @@ export default function App() {
   const [drawing, setDrawing] = useState(false)
   const [notice, setNotice] = useState('')
   const [presenting, setPresenting] = useState(false)
+  const [slotQuestions, setSlotQuestions] = useState([])
+  const [slotTargetIndex, setSlotTargetIndex] = useState(0)
   const input = useRef(null)
   const board = useRef(null)
-  const timer = useRef(null)
-  const previewButton = useRef(null)
   const closeButton = useRef(null)
   const selected = questions.find(item => item.id === selectedId)
   const waiting = questions.filter(item => !item.answered)
@@ -187,20 +187,26 @@ export default function App() {
     setNotice('메모 순서를 변경했어요.')
   }
 
-  useEffect(() => () => window.clearTimeout(timer.current), [])
+  const closePresentation = useCallback(() => {
+    setPresenting(false)
+    if (drawing) {
+      setDrawing(false)
+      setNotice('추첨을 취소했어요.')
+    }
+  }, [drawing])
+
   useEffect(() => {
     if (!presenting) return
     closeButton.current?.focus()
     const onKey = event => {
-      if (event.key === 'Escape') setPresenting(false)
+      if (event.key === 'Escape') closePresentation()
       if (event.key === 'Tab') { event.preventDefault(); closeButton.current?.focus() }
     }
     document.addEventListener('keydown', onKey)
     return () => {
       document.removeEventListener('keydown', onKey)
-      previewButton.current?.focus()
     }
-  }, [presenting])
+  }, [closePresentation, presenting])
 
   function submit(event) {
     event.preventDefault()
@@ -218,13 +224,31 @@ export default function App() {
     if (drawing || waiting.length === 0) return
     const others = waiting.filter(item => item.id !== selectedId)
     const candidates = others.length ? others : waiting
+    const targetIndexInRound = Math.floor(Math.random() * candidates.length)
+    const rounds = 8
+    setSlotQuestions(Array.from({ length: rounds }, () => candidates).flat())
+    setSlotTargetIndex(rounds / 2 * candidates.length + targetIndexInRound)
     setDrawing(true)
+    setPresenting(true)
     setNotice('질문을 뽑고 있어요.')
-    timer.current = window.setTimeout(() => {
-      setSelectedId(candidates[Math.floor(Math.random() * candidates.length)].id)
-      setDrawing(false)
-      setNotice('랜덤 질문을 선택했어요.')
-    }, 650)
+  }
+
+  function finishDraw(event) {
+    if (event.animationName !== 'slot-roll-to-center') return
+    const track = event.currentTarget
+    const slot = track.parentElement
+    if (!slot) return
+    const centerY = slot.getBoundingClientRect().top + slot.getBoundingClientRect().height / 2
+    const centeredQuestion = [...track.querySelectorAll('[data-slot-question]')]
+      .reduce((closest, item) => {
+        const bounds = item.getBoundingClientRect()
+        const distance = Math.abs(bounds.top + bounds.height / 2 - centerY)
+        return !closest || distance < closest.distance ? { id: item.dataset.slotQuestion, distance } : closest
+      }, null)
+    if (!centeredQuestion) return
+    setSelectedId(centeredQuestion.id)
+    setDrawing(false)
+    setNotice('랜덤 질문을 선택했어요.')
   }
 
   function complete() {
@@ -248,7 +272,6 @@ export default function App() {
         <div className="toolbar">
           <div className="view-label"><Icon name="edit" /> 질문 보드</div>
           <span className="toolbar-caption">질문을 남기고, 함께 이야기해요.</span>
-          <button ref={previewButton} className="text-button preview-button" onClick={() => setPresenting(true)} disabled={!selected || drawing}><Icon name="expand" /> 크게 보기</button>
         </div>
         <main className="workspace">
           <section className="panel compose-panel" aria-labelledby="compose-heading">
@@ -321,7 +344,7 @@ export default function App() {
         </main>
       </div>
       {drag && <div className="drag-preview" style={{ ...noteStyle(drag.item.color), left: drag.x + 14, top: drag.y + 14 }} aria-hidden="true"><span>{drag.item.sticker} 질문 이동 중</span><p>{drag.item.text}</p></div>}
-      {presenting && selected && <div className="presentation" role="dialog" aria-modal="true" aria-label="질문 크게 보기"><button ref={closeButton} className="close-preview outline-button" onClick={() => setPresenting(false)}><Icon name="close" /> 닫기</button><span>TalkConcert / 관객 질문</span><blockquote>{selected.text}</blockquote><p>익명의 관객</p></div>}
+      {presenting && <div className="presentation" role="dialog" aria-modal="true" aria-label="질문 크게 보기"><button ref={closeButton} className="close-preview outline-button" onClick={closePresentation}><Icon name="close" /> 닫기</button><span>TalkConcert / 관객 질문</span>{drawing ? <div className="slot-machine" aria-label="질문을 추첨하는 중"><div className="slot-track" onAnimationEnd={finishDraw} style={{ '--slot-final': `calc(50% - ${slotItemHeight / 2 + slotTargetIndex * slotItemHeight}px)`, '--slot-travel': `${Math.max(720, slotQuestions.length / 8 * slotItemHeight * 2)}px` }}>{slotQuestions.map((item, index) => <blockquote className="slot-question" data-slot-question={item.id} key={item.id + '-' + index}>{item.text}</blockquote>)}</div></div> : selected && <><blockquote>{selected.text}</blockquote><p>익명의 관객</p></>}</div>}
     </div>
   )
 }
