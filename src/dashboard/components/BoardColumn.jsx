@@ -6,14 +6,12 @@ export default function BoardColumn({
   column,
   questions,
   columnFor,
-  visibleQuestions,
   editingColumn,
   renameColumn,
   setEditingColumn,
   composeIn,
-  filter,
   selectedId,
-  setSelectedId,
+  openQuestion,
   drawing,
   dragControls,
 }) {
@@ -63,25 +61,21 @@ export default function BoardColumn({
         <Icon name="plus" size={18} />
       </button>
       <div className="column-notes">
-        {visibleQuestions
+        {questions
           .filter((item) => columnFor(item) === column.id)
           .map((item) => (
             <NoteCard
               key={item.id}
               item={item}
               selectedId={selectedId}
-              setSelectedId={setSelectedId}
+              openQuestion={openQuestion}
               drawing={drawing}
               {...dragControls}
             />
           ))}
       </div>
-      {!visibleQuestions.some((item) => columnFor(item) === column.id) && (
-        <p className="column-empty">
-          {filter === 'all'
-            ? '첫 질문을 붙여주세요'
-            : '이 상태의 질문이 없어요'}
-        </p>
+      {!questions.some((item) => columnFor(item) === column.id) && (
+        <p className="column-empty">첫 질문을 붙여주세요</p>
       )}
     </section>
   )

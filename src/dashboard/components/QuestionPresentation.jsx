@@ -1,48 +1,54 @@
 import { useEffect, useRef } from 'react'
 import Icon from '../../components/Icon'
+import QuestionSlot from './QuestionSlot'
 
-// 현장 화면에 선택한 질문을 크게 보여주는 모달이다.
+// 직접 고르거나 추첨한 질문을 같은 화면에서 크게 읽는다.
 export default function QuestionPresentation({
   selected,
-  setPresenting,
-  previewButton,
+  slot,
+  finishDraw,
+  closePresentation,
 }) {
-  const closeButton = useRef(null)
+  const dialog = useRef(null)
+
   useEffect(() => {
-    // 모달 안에 포커스를 유지하고 닫으면 진입 버튼으로 돌려준다.
-    const returnFocus = previewButton.current
-    closeButton.current?.focus()
-    const onKey = (event) => {
-      if (event.key === 'Escape') setPresenting(false)
-      if (event.key === 'Tab') {
-        event.preventDefault()
-        closeButton.current?.focus()
-      }
-    }
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      returnFocus?.focus()
-    }
-  }, [previewButton, setPresenting])
+    const modal = dialog.current
+    // 네이티브 모달로 배경 조작과 포커스 이탈을 막고, 닫으면 진입 위치로 돌아간다.
+    modal.showModal()
+    return () => modal.close()
+  }, [])
 
   return (
-    <div
+    <dialog
+      ref={dialog}
       className="presentation"
-      role="dialog"
-      aria-modal="true"
       aria-label="질문 크게 보기"
+      onCancel={(event) => {
+        event.preventDefault()
+        closePresentation()
+      }}
     >
       <button
-        ref={closeButton}
+        autoFocus
         className="close-preview outline-button"
-        onClick={() => setPresenting(false)}
+        onClick={() => closePresentation()}
       >
-        <Icon name="close" /> 닫기
+        <Icon name="close" /> 작게 보기
       </button>
-      <span>TalkConcert / 관객 질문</span>
-      <blockquote>{selected.text}</blockquote>
-      <p>익명의 관객</p>
-    </div>
+      <span>
+        TalkConcert /{' '}
+        {slot ? '관객 질문' : `Q${String(selected?.number).padStart(2, '0')}`}
+      </span>
+      {slot ? (
+        <QuestionSlot slot={slot} onFinish={finishDraw} />
+      ) : (
+        selected && (
+          <>
+            <blockquote>{selected.text}</blockquote>
+            <p>익명의 관객</p>
+          </>
+        )
+      )}
+    </dialog>
   )
 }

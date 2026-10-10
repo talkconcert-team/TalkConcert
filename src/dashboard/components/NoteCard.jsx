@@ -5,7 +5,7 @@ import { noteStyle } from '../dashboardData'
 export default function NoteCard({
   item,
   selectedId,
-  setSelectedId,
+  openQuestion,
   drawing,
   drag,
   dropTarget,
@@ -22,7 +22,6 @@ export default function NoteCard({
       className={
         'memo-note' +
         (selectedId === item.id ? ' selected' : '') +
-        (item.answered ? ' is-answered' : '') +
         (drag?.item.id === item.id ? ' is-dragging' : '') +
         (dropTarget?.id === item.id
           ? dropTarget.after
@@ -58,7 +57,7 @@ export default function NoteCard({
       </div>
       <button
         className="memo-read"
-        onClick={() => setSelectedId(item.id)}
+        onClick={() => openQuestion(item.id)}
         disabled={drawing}
         aria-pressed={selectedId === item.id}
       >
@@ -66,15 +65,7 @@ export default function NoteCard({
         <span className="memo-footer">
           <span>Q{String(item.number).padStart(2, '0')}</span>
           <span className="memo-status">
-            {item.answered ? (
-              <>
-                <Icon name="check" size={12} /> 답변 완료
-              </>
-            ) : selectedId === item.id ? (
-              '함께 읽는 중'
-            ) : (
-              '답변 대기'
-            )}
+            {selectedId === item.id ? '선택한 질문' : '눌러서 크게 보기'}
           </span>
         </span>
       </button>

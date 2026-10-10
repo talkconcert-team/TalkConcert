@@ -7,7 +7,7 @@ export default function useNoteDrag({
   board,
   columns,
   columnFor,
-  visibleQuestions,
+  questions,
   setQuestions,
   setNotice,
 }) {
@@ -97,7 +97,7 @@ export default function useNoteDrag({
     }[event.key]
     if (!direction) return
     event.preventDefault()
-    // 좌우는 인접 주제로, 위아래는 현재 필터에 보이는 같은 주제의 메모 사이로 이동한다.
+    // 좌우는 인접 주제로, 위아래는 같은 주제의 메모 사이로 이동한다.
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       const nextColumn =
         columns[
@@ -110,7 +110,7 @@ export default function useNoteDrag({
         )
       return
     }
-    const siblings = visibleQuestions.filter(
+    const siblings = questions.filter(
       (note) => columnFor(note) === columnFor(item),
     )
     const destination =

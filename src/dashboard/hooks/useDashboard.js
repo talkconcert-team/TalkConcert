@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadNotes, loadColumns } from '../dashboardData'
+import { createSlotDraw } from '../slotDraw'
 
-// 작성·선택·추첨·답변 상태와 브라우저 저장을 관리한다. 서버 동기화는 포함하지 않는다.
+// 작성·선택·추첨 상태와 브라우저 저장을 관리한다. 서버 동기화는 포함하지 않는다.
 export default function useDashboard() {
   const [questions, setQuestions] = useState(loadNotes)
   const [columns, setColumns] = useState(loadColumns)
@@ -11,19 +12,14 @@ export default function useDashboard() {
   const [color, setColor] = useState('cream')
   const [sticker, setSticker] = useState('💬')
   const [selectedId, setSelectedId] = useState(null)
-  const [filter, setFilter] = useState('all')
-  const [drawing, setDrawing] = useState(false)
+  const [presenting, setPresenting] = useState(false)
+  const [slot, setSlot] = useState(null)
+  const drawing = slot !== null
+  const activeDraw = useRef(null)
   const [notice, setNotice] = useState('')
   const input = useRef(null)
   const board = useRef(null)
-  const timer = useRef(null)
   const selected = questions.find((item) => item.id === selectedId)
-  const waiting = questions.filter((item) => !item.answered)
-  const visibleQuestions = questions.filter(
-    (item) =>
-      filter === 'all' ||
-      (filter === 'answered' ? item.answered : !item.answered),
-  )
   // 예전 저장 데이터에 주제가 없거나 현재 열과 맞지 않으면 첫 번째 열에 표시한다.
   const columnFor = (item) =>
     columns.some((column) => column.id === item.columnId)
@@ -73,8 +69,6 @@ export default function useDashboard() {
     }
   }, [questions])
 
-  // 화면을 떠난 뒤 추첨 타이머가 상태를 갱신하지 않도록 정리한다.
-  useEffect(() => () => window.clearTimeout(timer.current), [])
   function submit(event) {
     event.preventDefault()
     if (!draft.trim()) {
@@ -87,42 +81,48 @@ export default function useDashboard() {
       // 배열 순서와 별개인 질문 번호라 드래그해도 번호는 유지된다.
       number: Math.max(0, ...questions.map((note) => note.number)) + 1,
       text: draft.trim(),
-      answered: false,
       color,
       sticker,
       own: true,
     }
     setQuestions((current) => [item, ...current])
     setDraft('')
-    setFilter('all')
     setNotice('질문이 등록됐어요.')
     board.current?.scrollTo({ top: 0, behavior: 'smooth' })
     input.current?.focus()
   }
 
   function draw() {
-    if (drawing || waiting.length === 0) return
-    // 미답변 질문만 추첨하며, 후보가 여럿이면 현재 선택된 질문은 제외한다.
-    const others = waiting.filter((item) => item.id !== selectedId)
-    const candidates = others.length ? others : waiting
-    setDrawing(true)
+    if (activeDraw.current || questions.length === 0) return
+    const nextSlot = createSlotDraw(questions, selectedId)
+    activeDraw.current = nextSlot
+    setSlot(nextSlot)
+    setPresenting(true)
     setNotice('질문을 뽑고 있어요.')
-    timer.current = window.setTimeout(() => {
-      setSelectedId(
-        candidates[Math.floor(Math.random() * candidates.length)].id,
-      )
-      setDrawing(false)
-      setNotice('랜덤 질문을 선택했어요.')
-    }, 650)
   }
 
-  function complete() {
-    setQuestions((current) =>
-      current.map((item) =>
-        item.id === selectedId ? { ...item, answered: true } : item,
-      ),
-    )
-    setNotice('답변 완료로 표시했어요.')
+  function finishDraw() {
+    const result = activeDraw.current
+    if (!result) return
+    // 결과는 추첨 시작 때 확정한다. 화면 크기나 애니메이션 종료 시점에 영향받지 않는다.
+    setSelectedId(result.target.id)
+    activeDraw.current = null
+    setSlot(null)
+    setNotice('랜덤 질문을 선택했어요.')
+  }
+
+  function closePresentation() {
+    // 중간에 닫으면 추첨을 취소해 이전 결과가 뒤늦게 표시되지 않게 한다.
+    activeDraw.current = null
+    setSlot(null)
+    setPresenting(false)
+  }
+
+  // 카드 선택과 랜덤 추첨 모두 같은 크게 보기 화면으로 연결한다.
+  function openQuestion(id) {
+    if (drawing) return
+    setSelectedId(id)
+    setPresenting(true)
   }
 
   return {
@@ -140,23 +140,23 @@ export default function useDashboard() {
     sticker,
     setSticker,
     selectedId,
-    setSelectedId,
-    filter,
-    setFilter,
+    openQuestion,
+    presenting,
+    setPresenting,
     drawing,
+    slot,
+    finishDraw,
+    closePresentation,
     notice,
     setNotice,
     input,
     board,
     selected,
-    waiting,
-    visibleQuestions,
     columnFor,
     addColumn,
     composeIn,
     renameColumn,
     submit,
     draw,
-    complete,
   }
 }
