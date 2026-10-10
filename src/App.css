@@ -82,19 +82,14 @@ svg { flex-shrink: 0; }
 .draft-note, .memo-note { background: var(--note-color); border: 1px solid #0000000b; border-radius: 8px 8px 18px 8px; box-shadow: 0 2px 3px #00000004, 0 5px 14px #34302008; }
 .draft-note { padding: 18px; transition: background .18s; }
 .note-author { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 550; color: #393c40; }
-.note-author small { display: block; font-size: 10px; font-weight: 400; color: #6d6b64; margin-top: 3px; }
-.note-sticker { display: grid; width: 32px; height: 32px; background: #ffffff66; border: 1px solid #ffffff55; border-radius: 50%; place-items: center; font-size: 18px; }
 .draft-note textarea { width: 100%; min-height: 155px; margin: 17px 0 8px; padding: 0; border: 0; background: transparent; resize: vertical; font: inherit; font-size: 15px; line-height: 1.8; color: #343434; }
 .draft-note textarea::placeholder { color: #66635cb3; }
 .draft-footer { display: flex; justify-content: space-between; gap: 8px; color: #716d63; font-size: 10px; }
 .note-options { border: 0; margin: 20px 0 0; padding: 0; min-width: 0; }
 .note-options legend { padding: 0; margin-bottom: 10px; font-size: 12px; color: #747474; }
-.color-options, .sticker-options { display: flex; flex-wrap: wrap; gap: 9px; }
+.color-options { display: flex; flex-wrap: wrap; gap: 9px; }
 .color-swatch { width: 27px; height: 27px; border: 1px solid #00000015; border-radius: 50%; padding: 0; }
 .color-swatch[aria-pressed="true"] { outline: 2px solid #6b62d9; outline-offset: 3px; }
-.sticker-options button { width: 30px; height: 32px; padding: 0; border: 1px solid transparent; border-radius: 6px; background: #fff; font-size: 19px; }
-.sticker-options button[aria-pressed="true"] { border-color: #cec8f6; background: #f4f2ff; }
-.sticker-options button:hover { background: #f3f3f3; }
 .post-note { width: 100%; margin: 23px 0 10px; min-height: 40px; font-size: 13px; }
 .note-form .notice { font-size: 11px; color: #777; margin-top: 4px; line-height: 1.6; }
 .board-intro { font-size: 12px; color: #888; padding: 0 18px; margin: -1px 0 18px; line-height: 1.6; }
@@ -102,10 +97,7 @@ svg { flex-shrink: 0; }
 .memo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 195px), 1fr)); align-items: start; gap: 22px; }
 .memo-note { width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 17px; text-align: left; min-height: 208px; transition: box-shadow .15s, transform .15s; }
 .memo-note:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 18px #34302016; }
-.memo-note.selected { outline: 2px solid #7e74d8; outline-offset: 3px; }
 .memo-text { display: block; padding: 19px 0 22px; font-size: 15px; line-height: 1.8; overflow-wrap: anywhere; white-space: pre-wrap; color: #353535; }
-.memo-footer { margin-top: auto; border-top: 1px solid #00000009; padding-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 7px; font-size: 10px; color: #6e6b63; }
-.memo-footer > span:last-child { display: inline-flex; align-items: center; gap: 3px; }
 .add-note { width: 100%; min-height: 120px; flex-direction: column; gap: 12px; border: 1px dashed #ccc6b9; border-radius: 9px; background: #ffffff55; color: #989180; font-size: 12px; }
 .add-note:hover { background: #fff; color: #6b62d9; border-color: #a49bdd; }
 .board-empty { color: #898579; font-size: 13px; text-align: center; margin: 22px 0; }
@@ -113,9 +105,6 @@ svg { flex-shrink: 0; }
 .memo-note { position: relative; padding: 0; min-height: 225px; border-radius: 12px; border-color: #00000008; box-shadow: 0 1px 2px #00000006, 0 6px 16px #33301d06; animation: note-in .22s ease-out; }
 .memo-read { background: none; border: 0; display: flex; flex: 1; flex-direction: column; align-items: stretch; padding: 0 19px 16px; gap: 0; text-align: left; border-radius: 0 0 12px 12px; }
 .memo-text { font-size: 15px; line-height: 1.85; letter-spacing: -.02em; padding: 22px 0 25px; }
-.memo-footer { width: 100%; border-top: 0; color: #65635e; font-size: 10px; }
-.memo-status { margin-left: auto; padding: 4px 7px; border-radius: 5px; background: #ffffff70; }
-.memo-note.selected { outline: 2px solid #7a70ca; outline-offset: 3px; box-shadow: 0 7px 20px #5b548616; }
 .memo-note.is-dragging { opacity: .35; outline: 1px dashed #8178c6; }
 .drag-handle { flex-shrink: 0; width: 32px; height: 36px; padding: 0; border: 0; background: transparent; border-radius: 6px; color: #767268; cursor: grab; touch-action: none; user-select: none; }
 .drag-handle:hover { background: #ffffff80; }
@@ -129,7 +118,6 @@ svg { flex-shrink: 0; }
 .memo-board { background-image: none; background-color: #f4f3f0; padding: 24px; }
 .add-note { min-height: 160px; border-color: #d4d0c8; background: #ffffff30; color: #817b70; border-radius: 12px; }
 .draft-note { border-radius: 12px; box-shadow: 0 4px 15px #34302008; }
-.note-sticker { border-radius: 9px; background: #ffffff70; border: 0; }
 .list-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; font-size: 10px; }
 .list-footer > span { margin-left: auto; }
 .board-intro { font-size: 12px; }
@@ -151,9 +139,7 @@ svg { flex-shrink: 0; }
 .column-notes .memo-text { padding: 14px 0 18px; font-size: 14px; line-height: 1.8; }
 .column-notes .memo-top { padding: 14px 12px 0 15px; }
 .column-notes .memo-read { padding: 0 15px 13px; }
-.column-notes .note-sticker { width: 27px; height: 27px; font-size: 16px; }
 .column-notes .note-author { font-size: 11px; }
-.column-notes .memo-footer { margin-top: 0; }
 .column-hover { background: #e7e2f480; }
 .column-empty { text-align: center; padding: 22px 8px; margin: 0; color: #a49d92; font-size: 11px; border: 1px dashed #d8d3cb; border-radius: 7px; }
 .new-column { align-self: flex-start; border: 1px dashed #cfc8bd; border-radius: 7px; height: 43px; padding: 0 14px; white-space: nowrap; color: #888175; background: #ffffff66; font-size: 12px; }
@@ -217,3 +203,10 @@ svg { flex-shrink: 0; }
 
 .question-editor p:last-child { margin-bottom: 0; }
 .question-editor ul { margin: 0 0 .5em; }
+
+/* 기존에 저장한 사용자 지정 색도 읽을 수 있도록 대비를 맞춘다. */
+.draft-note, .memo-note { color: var(--note-ink); }
+.draft-note :is(.note-author, textarea, .draft-footer), .memo-note :is(.note-author, .memo-text, .drag-handle) { color: inherit; }
+.draft-note textarea::placeholder { color: inherit; opacity: .55; }
+/* 카드 선택 후 테두리를 남기지 않고 키보드 포커스는 배경으로 구분한다. */
+.memo-read:focus-visible { outline: none; background: #00000008; }
