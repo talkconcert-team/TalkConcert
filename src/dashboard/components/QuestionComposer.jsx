@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import QuestionEditor from './QuestionEditor'
 import Icon from '../../components/Icon'
 import { noteStyle, noteColors, stickers } from '../dashboardData'
 
@@ -16,6 +18,8 @@ export default function QuestionComposer({
   submit,
   notice,
 }) {
+  const [valid, setValid] = useState(false)
+
   return (
     <section className="panel compose-panel" aria-labelledby="compose-heading">
       <div className="panel-header">
@@ -38,7 +42,7 @@ export default function QuestionComposer({
         </div>
       </div>
       <div className="composer-bottom">
-        <form className="note-form" onSubmit={submit}>
+        <form className="note-form" onSubmit={event => { if (valid) submit(event); else event.preventDefault() }}>
           <label className="column-select-label" htmlFor="compose-column">
             질문을 붙일 곳
           </label>
@@ -63,22 +67,7 @@ export default function QuestionComposer({
                 익명의 관객<small>내 메모 미리보기</small>
               </span>
             </div>
-            <label htmlFor="question" className="sr-only">
-              질문 내용
-            </label>
-            <textarea
-              ref={input}
-              id="question"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              maxLength={240}
-              placeholder="지금 떠오른 질문을 여기에 적어주세요..."
-              required
-            />
-            <div className="draft-footer">
-              <span>나의 질문</span>
-              <span>{draft.length} / 240</span>
-            </div>
+            <QuestionEditor draft={draft} setDraft={setDraft} input={input} onValidityChange={setValid} />
           </div>
           <fieldset className="note-options">
             <legend>메모지 색</legend>
@@ -118,7 +107,7 @@ export default function QuestionComposer({
           <button
             type="submit"
             className="primary-button post-note"
-            disabled={!draft.trim()}
+            disabled={!valid || !draft.trim()}
           >
             <Icon name="plus" size={17} /> 보드에 붙이기
           </button>

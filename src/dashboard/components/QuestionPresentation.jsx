@@ -1,3 +1,4 @@
+import QuestionMarkdown from './QuestionMarkdown'
 import { useEffect, useRef } from 'react'
 import Icon from '../../components/Icon'
 import QuestionSlot from './QuestionSlot'
@@ -43,7 +44,9 @@ export default function QuestionPresentation({
       ) : (
         selected && (
           <>
-            <blockquote>{selected.text}</blockquote>
+            <blockquote>
+              <QuestionMarkdown>{selected.text}</QuestionMarkdown>
+            </blockquote>
           </>
         )
       )}

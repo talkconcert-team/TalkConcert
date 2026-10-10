@@ -196,3 +196,24 @@ svg { flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; }
 }
+
+.draft-footer { align-items: center; }
+.markdown-toolbar { display: flex; gap: 2px; }
+.markdown-toolbar button { width: 27px; height: 28px; padding: 0; border: 0; background: transparent; border-radius: 5px; }
+.markdown-toolbar button:hover { background: #8882; }
+
+.question-editor { min-height: 155px; margin: 17px 0 8px; font-size: 16px; letter-spacing: -.02em; line-height: 1.8; overflow-wrap: anywhere; outline: none; }
+.question-editor p { margin: 0 0 .5em; }
+.question-editor ul { padding-left: 1.3em; }
+.question-editor strong { font-weight: 750; }
+.question-editor em { font-style: italic; }
+.markdown-toolbar button[aria-pressed="true"] { background: #8884; }
+
+/* 메모지 자체가 입력 영역이므로 포커스 때 별도 입력 테두리를 그리지 않는다. */
+.question-editor, .question-editor:focus, .question-editor:focus-visible { border: 0; outline: none; box-shadow: none; }
+.question-editor p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: inherit; opacity: .45; }
+
+
+
+.question-editor p:last-child { margin-bottom: 0; }
+.question-editor ul { margin: 0 0 .5em; }

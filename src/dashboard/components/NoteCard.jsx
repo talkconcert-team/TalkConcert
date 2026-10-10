@@ -1,3 +1,4 @@
+import QuestionMarkdown from './QuestionMarkdown'
 import Icon from '../../components/Icon'
 import { noteStyle } from '../dashboardData'
 
@@ -61,7 +62,7 @@ export default function NoteCard({
         disabled={drawing}
         aria-pressed={selectedId === item.id}
       >
-        <span className="memo-text">{item.text}</span>
+        <span className="memo-text"><QuestionMarkdown>{item.text}</QuestionMarkdown></span>
         <span className="memo-footer">
           <span className="memo-status">
             {selectedId === item.id ? '선택한 질문' : '눌러서 크게 보기'}
