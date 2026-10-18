@@ -53,7 +53,7 @@ export default function AdminContent({ canManageTopics }) {
   const [notice, setNotice] = useState('')
   async function save(action, data) {
     const success = await board.mutate(action, data)
-    if (success) { setNotice('Supabase에 저장했어요. 보드에 곧 반영됩니다.'); setDeleting(null) }
+    if (success) { setNotice('저장했어요. 보드에 곧 반영됩니다.'); setDeleting(null) }
     return success
   }
   const live = board.questions.filter((question) => !question.deletedAt)
@@ -61,7 +61,7 @@ export default function AdminContent({ canManageTopics }) {
   return <section className="cms-content">
     <p className="admin-eyebrow">콘텐츠 관리</p><h1>주제와 질문</h1>
     <p className="admin-description">이곳에서 내용을 관리하면 진행·관객 보드에 반영됩니다.</p>
-    <p className="settings-status" role="status">{board.error || notice || (board.loaded ? 'Supabase의 최신 목록입니다.' : '목록을 불러오는 중이에요…')}</p>
+    <p className="settings-status" role="status">{board.error || notice || (board.loaded ? '최신 목록입니다.' : '목록을 불러오는 중이에요…')}</p>
     <section className="cms-panel" aria-labelledby="cms-topics">
       <h2 id="cms-topics">주제 관리</h2>
       {!canManageTopics && <p>기능 설정에서 주제 관리를 ‘이용 가능’으로 바꿔 주세요.</p>}

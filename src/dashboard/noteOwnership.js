@@ -1,8 +1,8 @@
 const key = 'talkconcert-note-owners-v1'
 
-export function loadNoteOwners(storage = localStorage) {
+export function loadNoteOwners(storage) {
   try {
-    const saved = JSON.parse(storage.getItem(key))
+    const saved = JSON.parse((storage || localStorage).getItem(key))
     return Object.fromEntries(Object.entries(saved || {}).filter(([id, token]) => /^[0-9a-f-]{36}$/i.test(id) && typeof token === 'string' && /^[0-9a-f]{64}$/.test(token)))
   } catch { return {} }
 }

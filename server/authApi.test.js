@@ -41,7 +41,7 @@ test('보드 읽기는 공개하고 관객 쓰기와 관리자 API는 로그인�
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
   t.after(() => new Promise((resolve) => { server.closeAllConnections(); server.close(resolve) }))
   const url = `http://127.0.0.1:${server.address().port}`
-  for (const path of ['/api/admin/settings', '/api/admin/board', '/api/auth/admin', '/api/auth/audience']) assert.equal((await fetch(url + path)).status, 401)
+  for (const path of ['/api/admin/settings', '/api/admin/board', '/api/auth/admin', '/api/auth/audience', '/api/board/ownership']) assert.equal((await fetch(url + path)).status, 401)
   assert.equal((await fetch(url + '/api/board', { method: 'POST' })).status, 401)
   assert.equal(await (await fetch(url + '/api/board')).text(), 'audience')
   assert.equal(await (await fetch(url + '/api/board', { headers: { Authorization: 'Bearer forged' } })).text(), 'audience')

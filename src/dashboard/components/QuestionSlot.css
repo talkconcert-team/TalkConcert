@@ -13,11 +13,12 @@
   top: 50%;
   left: 0;
   width: 100%;
+  /* 직접 실행한 슬롯 추첨은 앱 전역의 animation:none 규칙에 가려지지 않게 한다. */
   animation: slot-roll-to-center var(--slot-duration)
-    cubic-bezier(0.08, 0.72, 0.16, 1) forwards;
+    cubic-bezier(0.08, 0.72, 0.16, 1) forwards !important;
 }
 .slot-track.is-settling .slot-question--surrounding {
-  animation: slot-fade-surroundings 450ms ease-out forwards;
+  animation: slot-fade-surroundings 450ms ease-out forwards !important;
 }
 .slot-question {
   height: var(--slot-height);
@@ -44,10 +45,5 @@
     transform: translateY(
       calc((-0.5 - var(--slot-index)) * var(--slot-height))
     );
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .slot-track {
-    animation-duration: 1ms;
   }
 }

@@ -22,7 +22,8 @@ export default function App({ isPresenter = false }) {
       {permissions.canDraw && <DashboardSidebar
         drawing={state.drawing}
         draw={state.draw}
-        questions={state.questions}
+        available={state.drawAvailable}
+        hint={state.drawHint}
       />}
       <div className="app-main">
         <DashboardHeader
@@ -32,12 +33,13 @@ export default function App({ isPresenter = false }) {
           setPresenting={state.setPresenting}
           isPresenter={isPresenter}
           signedIn={state.signedIn}
+          accountEmail={state.accountEmail}
           requestLogin={state.requestLogin}
           loggingIn={state.loggingIn}
         />
         {isPresenter && savedSettings.error && <p className="settings-warning" role="status">{savedSettings.error}</p>}
         {state.error && <p className="settings-warning" role="status">{state.error}</p>}
-        {isPresenter && !state.error && state.notice && <p className="settings-status" role="status">{state.notice}</p>}
+        {isPresenter && !state.error && (state.notice || permissions.canDraw) && <p id="draw-status" className="settings-status" role="status">{permissions.canDraw && state.drawExhausted ? state.drawHint : state.notice || state.drawHint}</p>}
         <main className={isPresenter ? 'workspace presenter-workspace' : 'workspace'}>
           {!isPresenter && <QuestionComposer
             columns={state.columns}
