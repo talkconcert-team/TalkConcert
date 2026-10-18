@@ -1,11 +1,13 @@
-import QuestionMarkdown from './QuestionMarkdown'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SLOT_DURATION } from '../slotDraw'
 import './QuestionSlot.css'
+
+const SLOT_FADE_DURATION = 450
 
 // feat/slot의 감속 연출을 옮긴 컴포넌트. 추첨 결과 결정은 대시보드에서 담당한다.
 export default function QuestionSlot({ slot, onFinish }) {
   const finish = useRef(onFinish)
+  const [settling, setSettling] = useState(false)
   useEffect(() => {
     finish.current = onFinish
   }, [onFinish])
@@ -17,15 +19,21 @@ export default function QuestionSlot({ slot, onFinish }) {
     ).matches
     const timer = window.setTimeout(
       () => finish.current(),
-      reducedMotion ? 0 : SLOT_DURATION + 200,
+      reducedMotion ? 0 : SLOT_DURATION + SLOT_FADE_DURATION + 200,
     )
     return () => window.clearTimeout(timer)
   }, [slot])
 
+  useEffect(() => {
+    if (!settling) return undefined
+    const timer = window.setTimeout(() => finish.current(), SLOT_FADE_DURATION)
+    return () => window.clearTimeout(timer)
+  }, [settling])
+
   return (
     <div className="slot-machine" role="status" aria-label="질문을 추첨하는 중">
       <div
-        className="slot-track"
+        className={settling ? 'slot-track is-settling' : 'slot-track'}
         aria-hidden="true"
         style={{
           '--slot-index': slot.targetIndex,
@@ -36,12 +44,19 @@ export default function QuestionSlot({ slot, onFinish }) {
             event.target === event.currentTarget &&
             event.animationName === 'slot-roll-to-center'
           )
-            finish.current()
+            setSettling(true)
         }}
       >
         {slot.items.map((item, index) => (
-          <div className="slot-question" key={`${item.id}-${index}`}>
-            <QuestionMarkdown>{item.text}</QuestionMarkdown>
+          <div
+            className={
+              index === slot.targetIndex
+                ? 'slot-question'
+                : 'slot-question slot-question--surrounding'
+            }
+            key={`${item.id}-${index}`}
+          >
+            {item.text}
           </div>
         ))}
       </div>
