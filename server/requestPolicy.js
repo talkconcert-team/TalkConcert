@@ -3,7 +3,7 @@ export function allowedRequest(request, env) {
   const host = request.headers.host
   if (typeof host !== 'string') return false
   if (env.VERCEL === '1') {
-    const origins = [env.APP_ORIGIN, env.VERCEL_URL && `https://${env.VERCEL_URL}`, env.VERCEL_PROJECT_PRODUCTION_URL && `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`]
+    const origins = [env.APP_ORIGIN, env.VERCEL_URL && `https://${env.VERCEL_URL}`, env.VERCEL_BRANCH_URL && `https://${env.VERCEL_BRANCH_URL}`, env.VERCEL_PROJECT_PRODUCTION_URL && `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`]
     return origins.some((value) => {
       try { const url = new URL(value); return url.protocol === 'https:' && url.host === host } catch { return false }
     })

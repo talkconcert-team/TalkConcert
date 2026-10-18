@@ -2,12 +2,15 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { allowedRequest, sameOriginJson, readJsonBody } from './requestPolicy.js'
 
-const deployed = { VERCEL: '1', APP_ORIGIN: 'https://talkconcert.vercel.app', VERCEL_URL: 'talkconcert-preview.vercel.app' }
+const deployed = { VERCEL: '1', APP_ORIGIN: 'https://talkconcert.vercel.app', VERCEL_URL: 'talkconcert-preview.vercel.app', VERCEL_BRANCH_URL: 'talkconcert-git-feature.vercel.app' }
 const request = (host, origin = `https://${host}`) => ({ headers: { host, origin, 'content-type': 'application/json' }, socket: { remoteAddress: '203.0.113.2' } })
 
 test('배포된 API는 등록된 도메인만 허용하고 쓰기는 같은 출처로 제한한다', () => {
   assert.equal(allowedRequest(request('talkconcert.vercel.app'), deployed), true)
   assert.equal(allowedRequest(request('talkconcert-preview.vercel.app'), deployed), true)
+  assert.equal(allowedRequest(request('talkconcert-git-feature.vercel.app'), deployed), true)
+  assert.equal(sameOriginJson(request('talkconcert-git-feature.vercel.app'), deployed), true)
+  assert.equal(sameOriginJson(request('talkconcert-git-feature.vercel.app', 'https://attacker.example'), deployed), false)
   assert.equal(allowedRequest(request('attacker.example'), deployed), false)
   assert.equal(sameOriginJson(request('talkconcert.vercel.app'), deployed), true)
   assert.equal(sameOriginJson(request('talkconcert.vercel.app', 'https://attacker.example'), deployed), false)
