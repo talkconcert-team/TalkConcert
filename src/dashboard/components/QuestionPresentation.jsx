@@ -42,13 +42,13 @@ export default function QuestionPresentation({
       {slot ? (
         <QuestionSlot slot={slot} onFinish={finishDraw} />
       ) : (
-        selected && (
+        selected ? (
           <>
             <blockquote>
               <QuestionMarkdown>{selected.text}</QuestionMarkdown>
             </blockquote>
           </>
-        )
+        ) : <p role="status">이 질문은 보드에서 삭제되었어요. 작게 보기를 눌러 다른 질문을 선택해 주세요.</p>
       )}
     </dialog>
   )

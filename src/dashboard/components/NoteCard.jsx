@@ -15,6 +15,7 @@ export default function NoteCard({
   finishDrag,
   cancelDrag,
   moveWithKeyboard,
+  busy,
 }) {
   return (
     <article
@@ -33,14 +34,16 @@ export default function NoteCard({
       <div className="memo-top">
         <span className="note-author">
           <span>
-            {item.own ? '내 질문' : '부소마 학생 ' + String(item.number)}
+            {item.own ? '내 질문' : '익명 관객 · #' + String(item.number)}
           </span>
         </span>
-        {item.own && (
+        {item.movable && (
           <button
             type="button"
             className="drag-handle"
-            disabled={drawing}
+            disabled={drawing || busy}
+            aria-label={`질문 #${item.number} 이동`}
+            title="끌어서 이동 · 좌우 방향키로 주제 이동 · 위아래 방향키로 순서 변경"
             onPointerDown={(event) => startDrag(event, item)}
             onPointerMove={dragMove}
             onPointerUp={finishDrag}

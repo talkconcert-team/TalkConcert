@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { moveNote } from '../../lib/board'
 
 // 포인터와 방향키 이동을 같은 메모 재배치 함수로 처리한다.
 export default function useNoteDrag({
@@ -8,8 +7,9 @@ export default function useNoteDrag({
   columns,
   columnFor,
   questions,
-  setQuestions,
+  moveQuestion,
   setNotice,
+  busy,
 }) {
   const [drag, setDrag] = useState(null)
   const [dropTarget, setDropTarget] = useState(null)
@@ -32,7 +32,7 @@ export default function useNoteDrag({
   }, [])
 
   function startDrag(event, item) {
-    if (event.button !== 0 || drawing || !item.own) return
+    if (event.button !== 0 || drawing || busy || !item.movable) return
     event.preventDefault()
     // 손잡이 밖으로 포인터가 나가도 이동과 놓기 이벤트를 계속 받는다.
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -80,16 +80,13 @@ export default function useNoteDrag({
     const target = dropRef.current
     if (dragRef.current && target) {
       const source = dragRef.current
-      setQuestions((current) =>
-        moveNote(current, source, target.id, target.after, target.columnId),
-      )
-      setNotice('메모 순서를 변경했어요.')
+      void moveQuestion(source, target)
     }
     cancelDrag()
   }
 
   function moveWithKeyboard(event, item) {
-    if (!item.own) return
+    if (!item.movable || drawing || busy) return
     const direction = {
       ArrowLeft: -1,
       ArrowUp: -1,
@@ -106,9 +103,7 @@ export default function useNoteDrag({
             direction
         ]
       if (nextColumn)
-        setQuestions((current) =>
-          moveNote(current, item.id, null, true, nextColumn.id),
-        )
+        void moveQuestion(item.id, { columnId: nextColumn.id, after: true })
       return
     }
     const siblings = questions.filter(
@@ -117,16 +112,7 @@ export default function useNoteDrag({
     const destination =
       siblings[siblings.findIndex((note) => note.id === item.id) + direction]
     if (!destination) return
-    setQuestions((current) =>
-      moveNote(
-        current,
-        item.id,
-        destination.id,
-        direction > 0,
-        columnFor(item),
-      ),
-    )
-    setNotice('메모 순서를 변경했어요.')
+    void moveQuestion(item.id, { id: destination.id, columnId: columnFor(item), after: direction > 0 })
   }
 
   return {

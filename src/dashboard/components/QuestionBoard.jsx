@@ -1,21 +1,20 @@
-import Icon from '../../components/Icon'
 import BoardColumn from './BoardColumn'
 
 // 주제별 열을 묶어 전체 질문을 표시한다.
 export default function QuestionBoard({
   questions,
-  addColumn,
   board,
   columns,
   columnFor,
-  editingColumn,
-  renameColumn,
-  setEditingColumn,
   composeIn,
   selectedId,
   openQuestion,
   drawing,
+  canCompose,
+  loaded,
   dragControls,
+  busy,
+  canManageMoves,
 }) {
   return (
     <section className="panel list-panel" aria-labelledby="list-heading">
@@ -23,9 +22,6 @@ export default function QuestionBoard({
         <h2 id="list-heading">
           오늘의 질문 <span className="muted">({questions.length})</span>
         </h2>
-        <button className="primary-button" onClick={addColumn}>
-          <Icon name="plus" size={16} /> 주제 추가
-        </button>
       </div>
       <p className="board-intro">
         평소에 궁금했거나 고민하던 내용들을 편하게 작성해 주세요 
@@ -38,24 +34,23 @@ export default function QuestionBoard({
               column={column}
               questions={questions}
               columnFor={columnFor}
-              editingColumn={editingColumn}
-              renameColumn={renameColumn}
-              setEditingColumn={setEditingColumn}
               composeIn={composeIn}
               selectedId={selectedId}
               openQuestion={openQuestion}
               drawing={drawing}
+              canCompose={canCompose}
               dragControls={dragControls}
+              busy={busy}
             />
           ))}
         </div>
         {!questions.length && (
-          <p className="board-empty">첫 번째 질문을 남겨주세요.</p>
+          <p className="board-empty">{loaded ? '첫 번째 질문을 남겨주세요.' : 'Supabase에서 질문을 불러오는 중이에요…'}</p>
         )}
       </div>
       <div className="list-footer">
-        <Icon name="grip" size={14} /> 자유롭게 순서 변경{' '}
-        <span>이 브라우저에 저장 · 예시 질문 포함</span>
+        Supabase에 저장 · 5초마다 새로 확인
+        <span>{canManageMoves ? '관리자 · 모든 카드의 손잡이를 끌어 이동' : '내 카드 손잡이를 끌거나 방향키로 이동'}</span>
       </div>
     </section>
   )

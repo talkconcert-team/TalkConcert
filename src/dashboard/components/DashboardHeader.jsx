@@ -1,4 +1,5 @@
 import Icon from '../../components/Icon'
+import AdminSignOut from '../../components/AdminSignOut'
 
 // 전체 질문 수와 선택한 질문의 크게 보기 진입점을 표시한다.
 export default function DashboardHeader({
@@ -6,6 +7,10 @@ export default function DashboardHeader({
   setPresenting,
   selected,
   drawing,
+  isPresenter,
+  signedIn,
+  requestLogin,
+  loggingIn,
 }) {
   return (
     <>
@@ -19,7 +24,9 @@ export default function DashboardHeader({
           <span className="count-pill">
             <Icon name="message" size={15} /> {questions.length}개의 질문
           </span>
-          <span className="demo-label">미리보기</span>
+          <span className="demo-label">{isPresenter ? '진행 화면' : '관객 화면'}</span>
+          {isPresenter && <a className="admin-settings-link" href="/admin">관리자 설정</a>}
+          {signedIn ? <AdminSignOut returnTo={isPresenter ? '/admin' : '/'} /> : <button className="text-button" disabled={loggingIn} onClick={() => requestLogin()}>Google로 로그인</button>}
         </div>
       </header>
       <div className="toolbar">
