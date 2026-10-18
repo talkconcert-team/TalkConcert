@@ -54,6 +54,7 @@ export default function App({ isPresenter = false }) {
             signedIn={state.signedIn}
             requestLogin={state.requestLogin}
             loggingIn={state.loggingIn}
+            user={state.user}
           />}
           <QuestionBoard
             questions={state.questions}

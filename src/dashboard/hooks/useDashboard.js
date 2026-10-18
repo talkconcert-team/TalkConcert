@@ -4,6 +4,7 @@ import useBoard from './useBoard'
 import { loadNoteOwners, rememberNoteOwner } from '../noteOwnership'
 import { supabase } from '../../lib/supabase'
 import { checkAdmin, checkAudience, signInWithGoogle } from '../../lib/adminAuth'
+import { questionNickname } from '../questionNickname'
 
 function loadComposeIntent() {
   try { return JSON.parse(sessionStorage.getItem('talkconcert-compose-intent') || 'null') || {} } catch { return {} }
@@ -104,6 +105,7 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
       columnId: composeColumn,
       text: draft.trim(),
       color,
+      authorName: questionNickname(session?.user),
     }
     try {
       const saved = rememberNoteOwner(item.id)
@@ -175,6 +177,7 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
 
   return {
     questions,
+    user: session?.user,
     canManageMoves,
     signedIn: Boolean(session),
     loggingIn,

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import QuestionEditor from './QuestionEditor'
 import Icon from '../../components/Icon'
 import { noteStyle, noteColors } from '../dashboardData'
+import { questionNickname } from '../questionNickname'
 
 // 질문 내용·주제·색을 입력받고 등록 전 메모 모습을 보여준다.
 export default function QuestionComposer({
@@ -19,6 +20,7 @@ export default function QuestionComposer({
   signedIn,
   requestLogin,
   loggingIn,
+  user,
 }) {
   const [valid, setValid] = useState(false)
 
@@ -69,7 +71,7 @@ export default function QuestionComposer({
           </select>
           <div className="draft-note" style={noteStyle(color)}>
             <div className="note-author">
-              <span>익명의 관객</span>
+              <span>{questionNickname(user)}</span>
             </div>
             {signedIn ? <QuestionEditor
               draft={draft}
