@@ -1,5 +1,6 @@
 import Icon from '../../components/Icon'
 import AdminSignOut from '../../components/AdminSignOut'
+import SchoolBrand from '../../components/SchoolBrand'
 
 // 전체 질문 수와 선택한 질문의 크게 보기 진입점을 표시한다.
 export default function DashboardHeader({
@@ -18,7 +19,7 @@ export default function DashboardHeader({
       {' '}
       <header className="topbar">
         <div className="breadcrumb">
-          <span>TalkConcert 2026</span>
+          <SchoolBrand />
         </div>
         <span className="session-label">Q&A</span>
         <div className="header-actions">
