@@ -36,14 +36,20 @@ export default function QuestionPresentation({
       >
         <Icon name="close" /> 작게 보기
       </button>
-      <div className="presentation-content">
-        <span>TalkConcert / 오늘의 질문</span>
-        {slot ? (
-          <QuestionSlot slot={slot} onFinish={finishDraw} />
-        ) : (
-          selected && <blockquote>{selected.text}</blockquote>
-        )}
-      </div>
+      <span>
+        TalkConcert / 오늘의 질문
+      </span>
+      {slot ? (
+        <QuestionSlot slot={slot} onFinish={finishDraw} />
+      ) : (
+        selected ? (
+          <>
+            <blockquote>
+              <QuestionMarkdown>{selected.text}</QuestionMarkdown>
+            </blockquote>
+          </>
+        ) : <p role="status">이 질문은 보드에서 삭제되었어요. 작게 보기를 눌러 다른 질문을 선택해 주세요.</p>
+      )}
     </dialog>
   )
 }

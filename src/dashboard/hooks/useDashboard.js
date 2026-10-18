@@ -1,21 +1,61 @@
 import { useEffect, useRef, useState } from 'react'
-import { loadNotes, loadColumns } from '../dashboardData'
 import { createSlotDraw } from '../slotDraw'
+import useBoard from './useBoard'
+import { loadNoteOwners, rememberNoteOwner } from '../noteOwnership'
+import { supabase } from '../../lib/supabase'
+import { checkAdmin, checkAudience, signInWithGoogle } from '../../lib/adminAuth'
 
-// 작성·선택·추첨 상태와 브라우저 저장을 관리한다. 서버 동기화는 포함하지 않는다.
-export default function useDashboard() {
-  const [questions, setQuestions] = useState(loadNotes)
-  const [columns, setColumns] = useState(loadColumns)
-  const [composeColumn, setComposeColumn] = useState(() => loadColumns()[0].id)
-  const [editingColumn, setEditingColumn] = useState(null)
-  const [draft, setDraft] = useState('')
-  const [color, setColor] = useState('cream')
+function loadComposeIntent() {
+  try { return JSON.parse(sessionStorage.getItem('talkconcert-compose-intent') || 'null') || {} } catch { return {} }
+}
+
+// 작성·본인 메모 이동·추첨을 DB에 연결한다. 본문 수정·삭제와 주제 관리는 CMS에서 한다.
+export default function useDashboard({ canDraw = false, isPresenter = false } = {}) {
+  const [notice, setNotice] = useState('')
+  const remote = useBoard()
+  const { columns } = remote
+  const [owners, setOwners] = useState(loadNoteOwners)
+  const [session, setSession] = useState(supabase ? undefined : null)
+  const [loggingIn, setLoggingIn] = useState(false)
+  const [audienceAdmin, setAudienceAdmin] = useState(false)
+  const canManageMoves = isPresenter || audienceAdmin
+  const questions = remote.questions.map((item) => ({ ...item, own: Boolean(owners[item.id]), movable: Boolean(session) && (canManageMoves || Boolean(owners[item.id])) }))
+  useEffect(() => {
+    if (!supabase) return
+    let active = true
+    let revision = 0
+    const verify = async () => {
+      const current = ++revision
+      let allowed = false
+      try {
+        const { data } = await supabase.auth.getSession()
+        if (active) setSession(data.session)
+        if (data.session) { await checkAdmin(); allowed = true }
+      } catch { /* 일반 관객은 관리자 권한 없이 본인 메모를 이동한다. */ }
+      if (active && current === revision) setAudienceAdmin(allowed)
+    }
+    void verify()
+    // 인증 콜백 밖에서 검증해 Supabase 세션 처리와 충돌하지 않게 한다.
+    const { data } = supabase.auth.onAuthStateChange((_event, value) => { if (active) setSession(value); setTimeout(verify, 0) })
+    window.addEventListener('focus', verify)
+    const timer = window.setInterval(verify, 30000)
+    return () => { active = false; data.subscription.unsubscribe(); window.removeEventListener('focus', verify); window.clearInterval(timer) }
+  }, [isPresenter])
+  useEffect(() => {
+    const sync = (event) => { if (event.key === 'talkconcert-note-owners-v1' || event.key === null) setOwners(loadNoteOwners()) }
+    window.addEventListener('storage', sync)
+    return () => window.removeEventListener('storage', sync)
+  }, [])
+  const [preferredColumn, setComposeColumn] = useState(() => loadComposeIntent().columnId || '')
+  const composeColumn = columns.some((column) => column.id === preferredColumn) ? preferredColumn : (columns[0]?.id || '')
+  const pendingSubmission = useRef(null)
+  const [draft, setDraft] = useState(() => loadComposeIntent().draft || '')
+  const [color, setColor] = useState(() => loadComposeIntent().color || 'cream')
   const [selectedId, setSelectedId] = useState(null)
   const [presenting, setPresenting] = useState(false)
   const [slot, setSlot] = useState(null)
   const drawing = slot !== null
   const activeDraw = useRef(null)
-  const [notice, setNotice] = useState('')
   const input = useRef(null)
   const board = useRef(null)
   const selected = questions.find((item) => item.id === selectedId)
@@ -23,75 +63,85 @@ export default function useDashboard() {
   const columnFor = (item) =>
     columns.some((column) => column.id === item.columnId)
       ? item.columnId
-      : columns[0].id
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('talkconcert-columns-v1', JSON.stringify(columns))
-    } catch {
-      // 저장소 접근·용량 오류를 사용자에게 알리기 위한 예외적인 상태 갱신이다.
-      // oxlint-disable-next-line react/set-state-in-effect
-      setNotice('열 제목을 이 브라우저에 저장하지 못했어요.')
-    }
-  }, [columns])
-
-  function addColumn() {
-    const id = crypto.randomUUID()
-    setColumns((current) => [...current, { id, title: '새 주제' }])
-    setEditingColumn(id)
-    setComposeColumn(id)
-  }
+      : columns[0]?.id
 
   function composeIn(id) {
     setComposeColumn(id)
+    if (!session) { void requestLogin(id); return }
     input.current?.focus()
   }
 
-  function renameColumn(id, title) {
-    setColumns((current) =>
-      current.map((column) =>
-        column.id === id
-          ? { ...column, title: title.trim() || column.title }
-          : column,
-      ),
-    )
-    setEditingColumn(null)
+  async function requestLogin(columnId = composeColumn) {
+    if (loggingIn) return
+    setLoggingIn(true)
+    try {
+      sessionStorage.setItem('talkconcert-compose-intent', JSON.stringify({ columnId, color, draft }))
+      await signInWithGoogle('/')
+    } catch (error) { setNotice(error.message); setLoggingIn(false) }
   }
 
   useEffect(() => {
-    try {
-      localStorage.setItem('talkconcert-board-v1', JSON.stringify(questions))
-    } catch {
-      // 저장소 접근·용량 오류를 사용자에게 알리기 위한 예외적인 상태 갱신이다.
-      // oxlint-disable-next-line react/set-state-in-effect
-      setNotice('이 브라우저에서는 새로고침 후 메모를 유지할 수 없어요.')
-    }
-  }, [questions])
+    if (!session || !remote.loaded || !sessionStorage.getItem('talkconcert-compose-intent')) return
+    sessionStorage.removeItem('talkconcert-compose-intent')
+    input.current?.focus()
+  }, [session, remote.loaded])
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault()
-    if (!draft.trim()) {
+    // 만료된 세션도 제출 직전에 확인한다. 질문 원문은 자동 전송하지 않는다.
+    try { await checkAudience() } catch (error) {
+      if (!session || error.status === 401 || error.status === 403) { void requestLogin(); return }
+      setNotice(error.message); return
+    }
+    if (!draft.trim() || !composeColumn || remote.busy) {
       input.current?.focus()
       return
     }
+    const fingerprint = JSON.stringify([composeColumn, draft.trim(), color])
+    if (pendingSubmission.current?.fingerprint !== fingerprint) pendingSubmission.current = { fingerprint, id: crypto.randomUUID() }
     const item = {
-      id: crypto.randomUUID(),
+      id: pendingSubmission.current.id,
       columnId: composeColumn,
-      // 배열 순서와 별개인 질문 번호라 드래그해도 번호는 유지된다.
-      number: Math.max(0, ...questions.map((note) => note.number)) + 1,
       text: draft.trim(),
       color,
-      own: true,
     }
-    setQuestions((current) => [item, ...current])
-    setDraft('')
-    setNotice('질문이 등록됐어요.')
+    try {
+      const saved = rememberNoteOwner(item.id)
+      item.ownerToken = saved.token
+      setOwners(saved.owners)
+    } catch {
+      setNotice('작성자 정보를 저장하지 못했어요. 브라우저 저장소를 허용한 뒤 다시 등록해 주세요.')
+      return
+    }
+    if (!await remote.mutate('question.create', item)) return
+    pendingSubmission.current = null
+    setDraft((current) => current === draft ? '' : current)
+    setNotice('질문이 Supabase에 등록됐어요.')
     board.current?.scrollTo({ top: 0, behavior: 'smooth' })
     input.current?.focus()
   }
 
+  async function moveQuestion(id, destination) {
+    if (!session) { void requestLogin(); return false }
+    if (remote.busy || (!canManageMoves && !owners[id])) return false
+    setNotice('메모 위치를 저장하고 있어요…')
+    const saved = await remote.mutate('question.move', {
+      id, columnId: destination.columnId, targetId: destination.id || null,
+      after: Boolean(destination.after), ownerToken: owners[id],
+    }, { asAdmin: canManageMoves })
+    if (saved) {
+      setNotice('메모 위치를 Supabase에 저장했어요.')
+      requestAnimationFrame(() => {
+        const handle = board.current?.querySelector(`[data-note-id="${id}"] .drag-handle`)
+        handle?.focus({ preventScroll: true })
+        handle?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      })
+    }
+    return saved
+  }
+
   function draw() {
-    if (activeDraw.current || questions.length === 0) return
+    if (!canDraw || activeDraw.current || questions.length === 0) return
     const nextSlot = createSlotDraw(questions, selectedId)
     activeDraw.current = nextSlot
     setSlot(nextSlot)
@@ -125,12 +175,13 @@ export default function useDashboard() {
 
   return {
     questions,
-    setQuestions,
+    canManageMoves,
+    signedIn: Boolean(session),
+    loggingIn,
+    requestLogin,
     columns,
     composeColumn,
     setComposeColumn,
-    editingColumn,
-    setEditingColumn,
     draft,
     setDraft,
     color,
@@ -143,15 +194,17 @@ export default function useDashboard() {
     slot,
     finishDraw,
     closePresentation,
-    notice,
+    notice: remote.error || notice,
+    error: remote.error,
+    busy: remote.busy,
+    loaded: remote.loaded,
     setNotice,
     input,
     board,
     selected,
     columnFor,
-    addColumn,
+    moveQuestion,
     composeIn,
-    renameColumn,
     submit,
     draw,
   }

@@ -15,6 +15,10 @@ export default function QuestionComposer({
   input,
   submit,
   notice,
+  busy,
+  signedIn,
+  requestLogin,
+  loggingIn,
 }) {
   const [valid, setValid] = useState(false)
 
@@ -43,7 +47,8 @@ export default function QuestionComposer({
         <form
           className="note-form"
           onSubmit={(event) => {
-            if (valid) submit(event)
+            if (!signedIn) { event.preventDefault(); void requestLogin() }
+            else if (valid) submit(event)
             else event.preventDefault()
           }}
         >
@@ -66,12 +71,15 @@ export default function QuestionComposer({
             <div className="note-author">
               <span>익명의 관객</span>
             </div>
-            <QuestionEditor
+            {signedIn ? <QuestionEditor
               draft={draft}
               setDraft={setDraft}
               input={input}
               onValidityChange={setValid}
-            />
+            /> : <button type="button" className="draft-login-trigger" disabled={loggingIn} onClick={() => requestLogin()}>
+              <span>지금 떠오른 질문을 여기에 적어주세요…</span>
+              <small>질문 작성은 Google 로그인 후 가능해요.</small>
+            </button>}
           </div>
           <fieldset className="note-options">
             <legend>메모지 색</legend>
@@ -95,9 +103,9 @@ export default function QuestionComposer({
           <button
             type="submit"
             className="primary-button post-note"
-            disabled={!valid || !draft.trim()}
+            disabled={busy || loggingIn || (signedIn && (!valid || !draft.trim()))}
           >
-            <Icon name="plus" size={17} /> 보드에 붙이기
+            <Icon name="plus" size={17} /> {loggingIn ? 'Google로 이동 중…' : signedIn ? '보드에 붙이기' : 'Google로 로그인하고 질문 쓰기'}
           </button>
           <p className="notice" role="status">
             {notice}
