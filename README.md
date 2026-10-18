@@ -47,8 +47,17 @@ pnpm dev
 
 공개 테이블에는 RLS를 적용합니다. 활성 보드 조회는 공개하고 삭제된 질문·주제는 공개하지 않습니다. 질문 등록·이동 API는 요청마다 `getUser`로 JWT를 검증하고 DB의 검증된 Google identity와 유효한 세션을 확인합니다. 비로그인 사용자는 Supabase에 직접 요청해도 쓰기 RPC를 실행할 수 없습니다. 관리자 API는 추가로 관리자 허용 목록을 확인합니다. 관리 DB 함수에도 같은 권한 검사를 적용하며 서버 토큰만으로는 호출할 수 없습니다.
 `SERVER_SETTINGS_ADMIN_TOKEN`은 브라우저 번들에 포함하지 않으며 `.env`는 커밋하지 않습니다. 프로젝트 전체에 접근하는 service_role 키는 사용하지 않습니다.
-개발 서버와 쓰기 API는 루프백 접속만 허용합니다. 외부 배포 시에는 HTTPS 백엔드와 OAuth 주소 설정을 제공해야 하며, 정적 빌드만 배포하면 저장 API가 제공되지 않습니다.
-여러 화면은 동일한 DB를 읽지만 현재 개발 서버에는 이 PC에서만 접속할 수 있습니다.
+개발 서버는 루프백 접속만 허용합니다. Vercel 배포에서는 `api/index.js`가 동일한 인증·설정·보드 미들웨어를 실행합니다. 등록된 HTTPS 도메인에서 요청받고, 쓰기는 같은 출처의 JSON 요청으로 제한합니다.
+여러 화면은 동일한 DB를 읽습니다. 운영 사이트는 https://talkconcert.vercel.app 입니다.
+
+## Vercel 배포
+
+- `vercel.json`이 Vite 빌드와 `/api/*` 함수 라우팅, `/admin`·`/presenter`·`/auth/callback`의 SPA 진입을 설정합니다. Node.js 22를 사용합니다.
+- Vercel Production 환경변수에 `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SERVER_SETTINGS_ADMIN_TOKEN`, `APP_ORIGIN=https://talkconcert.vercel.app`을 등록합니다. 서버 토큰은 Secret으로 저장합니다. `.env`와 `.vercel` 인증 파일은 배포 소스에 포함하지 않습니다.
+- Supabase Site URL은 운영 도메인으로 설정하고 Redirect URLs에 `https://talkconcert.vercel.app/auth/callback`을 추가합니다. 기존 로컬 콜백은 유지합니다.
+- Google OAuth의 승인된 JavaScript 원본에 운영 도메인을 추가합니다. Google 콜백은 기존 Supabase `/auth/v1/callback`을 유지합니다.
+- CLI에서 연결된 프로젝트를 확인한 뒤 `pnpm dlx vercel deploy --prod`로 배포합니다. Git 자동 배포는 별도 연결 전까지 활성화하지 않습니다.
+- 배포 후 공개 보드 조회와 비로그인 쓰기 차단, Google 인증 왕복, 관리자 CMS 저장을 확인합니다.
 
 ## CMS 사용
 
