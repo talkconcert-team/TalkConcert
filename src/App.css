@@ -285,3 +285,19 @@ h3.column-title { margin: 0; }
   .admin-settings h1 { font-size: 24px; }
   .screen-links { grid-template-columns: 1fr; }
 }
+.account-label {
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: #666;
+}
+
+@media (max-width: 600px) {
+  /* 휴대전화에서도 로그인 계정과 로그아웃을 확인할 수 있어야 한다. */
+  .topbar { height: auto; min-height: 58px; flex-wrap: wrap; gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+  .header-actions { display: flex; flex: 1 0 100%; flex-wrap: wrap; gap: 8px; }
+  .header-actions .count-pill, .header-actions .demo-label { display: none; }
+  .account-label { max-width: min(170px, 45vw); margin-right: auto; }
+}

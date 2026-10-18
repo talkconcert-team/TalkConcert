@@ -44,7 +44,7 @@ export function createBoardMiddleware(env, factory = createClient) {
         action = body?.action
         data = body?.data
         if (!validBoardAction(action, data) || (!admin && !['question.create', 'question.move'].includes(action))) return reply(res, 400, { error: '내용·주제·색을 확인해 주세요.' })
-        if (!admin && !/^[0-9a-f]{64}$/.test(data.ownerToken || '')) return reply(res, 400, { error: '작성자 확인 정보가 필요해요. 새로고침 후 다시 등록해 주세요.' })
+        if (!admin && data.ownerToken != null && !/^[0-9a-f]{64}$/.test(data.ownerToken)) return reply(res, 400, { error: '작성자 확인 정보를 확인해 주세요.' })
       }
       let result
       if (admin) {
@@ -61,8 +61,8 @@ export function createBoardMiddleware(env, factory = createClient) {
         result = await db.rpc('get_talkconcert_board')
       } else {
         result = action === 'question.move'
-          ? await db.rpc('move_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_target: data.targetId || null, p_after: data.after, p_owner_token: data.ownerToken })
-          : await db.rpc('submit_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_text: data.text.trim(), p_color: data.color, p_owner_token: data.ownerToken })
+          ? await db.rpc('move_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_target: data.targetId || null, p_after: data.after, p_owner_token: data.ownerToken || null })
+          : await db.rpc('submit_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_text: data.text.trim(), p_color: data.color, p_owner_token: data.ownerToken || null })
         if (!result.error) result = await db.rpc('get_talkconcert_board')
       }
       if (result.error) {

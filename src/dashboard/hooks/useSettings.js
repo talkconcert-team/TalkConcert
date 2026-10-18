@@ -51,12 +51,12 @@ export default function useSettings() {
     writing.current = true
     version.current += 1
     setSaving(true)
-    setNotice('Supabase에 저장 중이에요…')
+    setNotice('저장 중이에요…')
     try {
       const saved = await requestSettings({ [key]: enabled })
       if (!mounted.current) return
       setSettings(saved)
-      setNotice('Supabase에 저장했어요.')
+      setNotice('저장했어요.')
       window.dispatchEvent(new Event('talkconcert-settings-saved'))
     } catch (error) {
       // 실패하면 기존 선택을 유지해 저장되지 않은 설정이 적용된 것처럼 보이지 않게 한다.
@@ -72,7 +72,7 @@ export default function useSettings() {
     updateSetting,
     available: loaded && !readError,
     disabled: !loaded || Boolean(readError) || saving,
-    notice: readError || notice || (loaded ? 'Supabase에 저장된 설정입니다.' : 'Supabase에서 설정을 불러오는 중이에요…'),
+    notice: readError || notice || (loaded ? '저장된 설정입니다.' : '설정을 불러오는 중이에요…'),
     error: readError,
   }
 }

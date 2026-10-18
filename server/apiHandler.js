@@ -1,10 +1,12 @@
 import { createAuthMiddleware } from './authApi.js'
 import { createBoardMiddleware } from './boardApi.js'
 import { createSettingsMiddleware } from './settingsApi.js'
+import { createDrawMiddleware } from './drawApi.js'
+import { createOwnershipMiddleware } from './ownershipApi.js'
 
 // 개발 서버와 배포 함수가 같은 인증·저장 코드를 사용한다.
 export function createApiHandler(env) {
-  const middlewares = [createAuthMiddleware(env), createSettingsMiddleware(env), createBoardMiddleware(env)]
+  const middlewares = [createAuthMiddleware(env), createSettingsMiddleware(env), createBoardMiddleware(env), createDrawMiddleware(env), createOwnershipMiddleware(env)]
   return async (request, response) => {
     try {
       const run = async (index) => {

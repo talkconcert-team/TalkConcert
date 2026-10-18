@@ -30,13 +30,11 @@ test('로그인 없는 관리자 이동은 DB 호출 전에 차단한다', async
   assert.deepEqual(f.calls, [])
 })
 
-test('관객 이동은 작성자 토큰이 있어야 하며 관리자 RPC를 호출하지 않는다', async (t) => {
+test('관객 이동은 브라우저 토큰 없이 계정 소유권 RPC로 검증하고 관리자 RPC를 호출하지 않는다', async (t) => {
   const f = await fixture(t, false)
-  assert.equal((await f.post('/api/board')).status, 400)
-  const ownerToken = 'a'.repeat(64)
-  assert.equal((await f.post('/api/board', { ...payload, data: { ...payload.data, ownerToken } })).status, 200)
+  assert.equal((await f.post('/api/board')).status, 200)
   assert.deepEqual(f.calls.map(({ scope, name }) => [scope, name]), [['verified-audience', 'move_talkconcert_question'], ['verified-audience', 'get_talkconcert_board']])
-  assert.equal(f.calls[0].args.p_owner_token, ownerToken)
+  assert.equal(f.calls[0].args.p_owner_token, null)
 })
 
 test('로그인 없는 관객 이동은 작성자 토큰이 있어도 차단한다', async (t) => {
