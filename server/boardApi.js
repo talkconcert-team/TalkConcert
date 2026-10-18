@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { allowedRequest, sameOriginJson, readJsonBody } from './requestPolicy.js'
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const colors = /^(cream|rose|mint|sky|lavender|white|#[0-9a-f]{6})$/i
@@ -28,10 +29,7 @@ export function createBoardMiddleware(env, factory = createClient) {
     const publicRead = !admin && req.method === 'GET'
     if (admin && !req.adminDb) return reply(res, 401, { error: '관리자 로그인이 필요해요.' })
     if (!admin && !publicRead && !req.audienceDb) return reply(res, 401, { error: 'Google 로그인이 필요해요.' })
-    const host = req.headers.host
-    let hostname
-    try { hostname = new URL(`http://${host}`).hostname } catch { hostname = '' }
-    if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress) || !['127.0.0.1', 'localhost', '[::1]'].includes(hostname)) return reply(res, 403, { error: '이 PC에서만 사용할 수 있는 API예요.' })
+    if (!allowedRequest(req, env)) return reply(res, 403, { error: '허용된 행사 주소에서 접속해 주세요.' })
     if (!['GET', 'POST'].includes(req.method)) return reply(res, 405, { error: '지원하지 않는 요청이에요.' })
     if (!env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY || (admin && !env.SERVER_SETTINGS_ADMIN_TOKEN)) return reply(res, 503, { error: 'Supabase 연결 정보를 확인해 주세요.' })
     try {
@@ -41,20 +39,12 @@ export function createBoardMiddleware(env, factory = createClient) {
       let action = 'snapshot'
       let data = {}
       if (req.method === 'POST') {
-        if (![`http://${host}`, `https://${host}`].includes(req.headers.origin) || req.headers['content-type']?.split(';')[0] !== 'application/json') return reply(res, 403, { error: '페이지에서 다시 시도해 주세요.' })
-        const chunks = []
-        let size = 0
-        for await (const chunk of req) {
-          size += chunk.length
-          if (size > 32768) return reply(res, 413, { error: '입력 내용이 너무 길어요.' })
-          chunks.push(chunk)
-        }
-        let body
-        try { body = JSON.parse(Buffer.concat(chunks).toString('utf8')) } catch { return reply(res, 400, { error: '입력 형식을 확인해 주세요.' }) }
+        if (!sameOriginJson(req, env)) return reply(res, 403, { error: '페이지에서 다시 시도해 주세요.' })
+        const body = await readJsonBody(req, 32768)
         action = body?.action
         data = body?.data
         if (!validBoardAction(action, data) || (!admin && !['question.create', 'question.move'].includes(action))) return reply(res, 400, { error: '내용·주제·색을 확인해 주세요.' })
-        if (!admin && !/^[0-9a-f]{64}$/.test(data.ownerToken || '')) return reply(res, 400, { error: '작성자 확인 정보가 필요해요. 새로고침 후 다시 등록해 주세요.' })
+        if (!admin && data.ownerToken != null && !/^[0-9a-f]{64}$/.test(data.ownerToken)) return reply(res, 400, { error: '작성자 확인 정보를 확인해 주세요.' })
       }
       let result
       if (admin) {
@@ -81,7 +71,8 @@ export function createBoardMiddleware(env, factory = createClient) {
         return reply(res, known ? 409 : 502, { error: known ? (result.error.code === '22023' || result.error.code === 'P0002' ? result.error.message : '입력 내용을 확인해 주세요.') : 'Supabase 작업 결과를 확인하지 못했어요. 목록을 다시 확인해 주세요.' })
       }
       return reply(res, 200, result.data)
-    } catch {
+    } catch (error) {
+      if ([400, 413].includes(error.status)) return reply(res, error.status, { error: error.message })
       return reply(res, 502, { error: 'Supabase에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.' })
     }
   }

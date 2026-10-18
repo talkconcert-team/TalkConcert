@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { sessionHeaders } from '../../lib/adminAuth'
+import { requestJson } from '../../lib/requestTimeout'
 
 export async function boardRequest(admin, action, data) {
   const headers = admin || action ? await sessionHeaders() : {}
-  const response = await fetch(admin ? '/api/admin/board' : '/api/board', {
+  const { response, data: result } = await requestJson(admin ? '/api/admin/board' : '/api/board', {
     cache: 'no-store',
     headers: { ...headers, ...(action ? { 'Content-Type': 'application/json' } : {}) },
     ...(action ? { method: 'POST', body: JSON.stringify({ action, data }) } : {}),
   })
-  const result = await response.json().catch(() => null)
   if (!response.ok || !Array.isArray(result?.columns) || !Array.isArray(result?.questions)) throw new Error(result?.error || '질문 보드를 불러오지 못했어요.')
   return result
 }

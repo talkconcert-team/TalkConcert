@@ -1,28 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
-import { SLOT_DURATION } from '../slotDraw'
+import { SLOT_FADE_DURATION, slotTiming } from '../slotDraw'
 import './QuestionSlot.css'
 
-const SLOT_FADE_DURATION = 450
-
-// feat/slot의 감속 연출을 옮긴 컴포넌트. 추첨 결과 결정은 대시보드에서 담당한다.
+// feat/slot의 감속·사라짐 연출을 유지하며 DB가 확정한 당첨자를 표시한다.
 export default function QuestionSlot({ slot, onFinish }) {
   const finish = useRef(onFinish)
   const [settling, setSettling] = useState(false)
+  const timing = slotTiming()
   useEffect(() => {
     finish.current = onFinish
   }, [onFinish])
 
   useEffect(() => {
-    // 모션 감소 설정에서는 즉시 결과를 표시한다. 애니메이션 이벤트 누락에도 완료를 보장한다.
-    const reducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches
+    // 사용자가 실행한 추첨은 기존 슬롯 연출을 끝까지 보여준다. 이벤트 누락 시에도 완료한다.
     const timer = window.setTimeout(
       () => finish.current(),
-      reducedMotion ? 0 : SLOT_DURATION + SLOT_FADE_DURATION + 200,
+      timing.finish,
     )
     return () => window.clearTimeout(timer)
-  }, [slot])
+  }, [slot, timing.finish])
 
   useEffect(() => {
     if (!settling) return undefined
@@ -37,7 +33,7 @@ export default function QuestionSlot({ slot, onFinish }) {
         aria-hidden="true"
         style={{
           '--slot-index': slot.targetIndex,
-          '--slot-duration': `${SLOT_DURATION}ms`,
+          '--slot-duration': `${timing.roll}ms`,
         }}
         onAnimationEnd={(event) => {
           if (
