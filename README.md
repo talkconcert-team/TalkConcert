@@ -55,6 +55,7 @@ pnpm dev
 - `vercel.json`이 Vite 빌드와 `/api/*` 함수 라우팅, `/admin`·`/presenter`·`/auth/callback`의 SPA 진입을 설정합니다. Node.js 22를 사용합니다.
 - Vercel Production 환경변수에 `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SERVER_SETTINGS_ADMIN_TOKEN`, `APP_ORIGIN=https://talkconcert.vercel.app`을 등록합니다. 서버 토큰은 Secret으로 저장합니다. `.env`와 `.vercel` 인증 파일은 배포 소스에 포함하지 않습니다.
 - Supabase Site URL은 운영 도메인으로 설정하고 Redirect URLs에 `https://talkconcert.vercel.app/auth/callback`을 추가합니다. 기존 로컬 콜백은 유지합니다.
+- 미리보기 로그인 복귀 주소는 `https://talkconcert-*-sins-projects-a8a94543.vercel.app/auth/callback`으로 이 프로젝트의 배포 주소에만 허용합니다. 운영 Site URL은 그대로 유지합니다.
 - Google OAuth의 승인된 JavaScript 원본에 운영 도메인을 추가합니다. Google 콜백은 기존 Supabase `/auth/v1/callback`을 유지합니다.
 - GitHub의 `talkconcert-team/TalkConcert`를 기존 Vercel 프로젝트에 연결했습니다. `develop`에 푸시·병합하면 운영 사이트에 자동 배포하고, 다른 브랜치의 변경은 PR 미리보기로 배포합니다. 수동 배포가 필요하면 연결된 프로젝트를 확인한 뒤 `pnpm dlx vercel deploy --prod`를 사용합니다.
 - 자동 빌드는 `pnpm lint && pnpm test && pnpm build` 순서로 실행해 린트·테스트·빌드가 모두 성공한 버전만 배포합니다. Preview에도 Supabase 연결 변수를 별도로 등록하며 운영·미리보기는 현재 같은 DB를 사용합니다.
