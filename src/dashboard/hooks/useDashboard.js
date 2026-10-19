@@ -4,6 +4,7 @@ import useBoard from './useBoard'
 import { syncQuestionOwnership } from '../questionOwnership'
 import { supabase } from '../../lib/supabase'
 import { checkAdmin, checkAudience, signInWithGoogle } from '../../lib/adminAuth'
+import { questionNickname } from '../questionNickname'
 import { withTimeout } from '../../lib/requestTimeout'
 
 function loadComposeIntent() {
@@ -117,6 +118,7 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
       columnId: composeColumn,
       text: draft.trim(),
       color,
+      authorName: questionNickname(session?.user),
     }
     if (!await remote.mutate('question.create', item)) return
     ownershipRevision.current += 1
@@ -149,6 +151,7 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
 
   return {
     questions,
+    user: session?.user,
     canManageMoves,
     signedIn: Boolean(session),
     accountEmail: session?.user.email || '',

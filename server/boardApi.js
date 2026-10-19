@@ -61,8 +61,8 @@ export function createBoardMiddleware(env, factory = createClient) {
         result = await db.rpc('get_talkconcert_board')
       } else {
         result = action === 'question.move'
-          ? await db.rpc('move_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_target: data.targetId || null, p_after: data.after, p_owner_token: data.ownerToken || null })
-          : await db.rpc('submit_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_text: data.text.trim(), p_color: data.color, p_owner_token: data.ownerToken || null })
+          ? await db.rpc('move_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_target: data.targetId || null, p_after: data.after, p_owner_token: data.ownerToken })
+          : await db.rpc('submit_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_text: data.text.trim(), p_color: data.color, p_owner_token: data.ownerToken, p_author_name: data.authorName })
         if (!result.error) result = await db.rpc('get_talkconcert_board')
       }
       if (result.error) {
