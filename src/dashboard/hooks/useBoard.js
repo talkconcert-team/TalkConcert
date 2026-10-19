@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { sessionHeaders } from '../../lib/adminAuth'
+import { notifyError } from '../../lib/toast'
 
 export async function boardRequest(admin, action, data) {
   const headers = admin || action ? await sessionHeaders() : {}
@@ -34,7 +35,7 @@ export default function useBoard(admin = false) {
         const snapshot = await boardRequest(admin)
         if (active && started === version.current) { setData(snapshot); setLoaded(true); setError('') }
       } catch (err) {
-        if (active && started === version.current) setError(err.message)
+        if (active && started === version.current) { setError(err.message); notifyError(err.message) }
       } finally { pending = false }
     }
     void refresh()
@@ -63,7 +64,7 @@ export default function useBoard(admin = false) {
       window.dispatchEvent(new Event('talkconcert-board-changed'))
       return true
     } catch (err) {
-      if (alive.current) setError(err.message)
+      if (alive.current) { setError(err.message); notifyError(err.message) }
       return false
     } finally {
       writing.current = false

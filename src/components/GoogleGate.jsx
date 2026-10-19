@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { checkAdmin, signInWithGoogle } from '../lib/adminAuth'
+import { notifyError } from '../lib/toast'
 
 // 별도 로그인 화면을 만들지 않고 관리 주소에서 Google 인증으로 바로 이동한다.
 export default function GoogleGate({ children }) {
@@ -24,6 +25,7 @@ export default function GoogleGate({ children }) {
     } catch (error) {
       starting.current = false
       setMessage(error.message)
+      notifyError(error.message)
       setPhase('error')
     }
   }, [session])
@@ -52,7 +54,7 @@ export default function GoogleGate({ children }) {
         await checkAdmin()
         if (active) { setApprovedToken(session.access_token); setPhase('allowed'); setMessage('') }
       } catch (error) {
-        if (active) { setPhase(error.status === 403 ? 'denied' : 'error'); setMessage(error.message) }
+        if (active) { setPhase(error.status === 403 ? 'denied' : 'error'); setMessage(error.message); notifyError(error.message) }
       }
     }
     void verify()

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import useBoard from '../hooks/useBoard'
 import { noteColors } from '../dashboardData'
 import QuestionMarkdown from './QuestionMarkdown'
+import { notifySuccess } from '../../lib/toast'
 
 function QuestionForm({ item, columns, busy, onSave, onCancel }) {
   const [text, setText] = useState(item?.text || '')
@@ -53,7 +54,7 @@ export default function AdminContent({ canManageTopics }) {
   const [notice, setNotice] = useState('')
   async function save(action, data) {
     const success = await board.mutate(action, data)
-    if (success) { setNotice('Supabase에 저장했어요. 보드에 곧 반영됩니다.'); setDeleting(null) }
+    if (success) { setNotice('Supabase에 저장했어요. 보드에 곧 반영됩니다.'); notifySuccess(action === 'question.create' ? '질문이 업로드되었습니다.' : 'Supabase에 저장했어요.'); setDeleting(null) }
     return success
   }
   const live = board.questions.filter((question) => !question.deletedAt)
