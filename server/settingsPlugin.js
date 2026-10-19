@@ -1,7 +1,5 @@
 import { loadEnv } from 'vite'
-import { createSettingsMiddleware } from './settingsApi.js'
-import { createBoardMiddleware } from './boardApi.js'
-import { createAuthMiddleware } from './authApi.js'
+import { createApiHandler } from './apiHandler.js'
 
 export default function settingsPlugin() {
   let env
@@ -11,14 +9,12 @@ export default function settingsPlugin() {
       env = loadEnv(config.mode, config.envDir, ['SUPABASE_', 'SERVER_SETTINGS_'])
     },
     configureServer(server) {
-      server.middlewares.use(createAuthMiddleware(env))
-      server.middlewares.use(createSettingsMiddleware(env))
-      server.middlewares.use(createBoardMiddleware(env))
+      const handler = createApiHandler(env)
+      server.middlewares.use((req, res, next) => req.url?.startsWith('/api/') ? handler(req, res) : next())
     },
     configurePreviewServer(server) {
-      server.middlewares.use(createAuthMiddleware(env))
-      server.middlewares.use(createSettingsMiddleware(env))
-      server.middlewares.use(createBoardMiddleware(env))
+      const handler = createApiHandler(env)
+      server.middlewares.use((req, res, next) => req.url?.startsWith('/api/') ? handler(req, res) : next())
     },
   }
 }

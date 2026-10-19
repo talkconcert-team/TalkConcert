@@ -53,7 +53,7 @@ export default function useSettings() {
     writing.current = true
     version.current += 1
     setSaving(true)
-    setNotice('Supabase에 저장 중이에요…')
+    setNotice('저장 중이에요…')
     try {
       const saved = await requestSettings({ [key]: enabled })
       if (!mounted.current) return
@@ -75,7 +75,7 @@ export default function useSettings() {
     updateSetting,
     available: loaded && !readError,
     disabled: !loaded || Boolean(readError) || saving,
-    notice: readError || notice || (loaded ? 'Supabase에 저장된 설정입니다.' : 'Supabase에서 설정을 불러오는 중이에요…'),
+    notice: readError || notice || (loaded ? '저장된 설정입니다.' : '설정을 불러오는 중이에요…'),
     error: readError,
   }
 }

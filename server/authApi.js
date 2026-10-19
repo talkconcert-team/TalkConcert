@@ -35,7 +35,7 @@ export function createAuthMiddleware(env, factory = createClient) {
     // 관객 보드는 공개로 읽고, 작성·이동에만 Google 세션을 요구한다.
     if (path === '/api/board' && request.method === 'GET') return next()
     const admin = path === '/api/auth/admin' || path?.startsWith('/api/admin/')
-    const audience = path === '/api/auth/audience' || path === '/api/board'
+    const audience = path === '/api/auth/audience' || path === '/api/board' || path === '/api/board/ownership'
     if (!admin && !audience) return next()
     const result = await (admin ? verifyAdmin(request, env, factory) : verifyAudience(request, env, factory))
     if (result.status !== 200) return reply(response, result.status, { error: result.error })

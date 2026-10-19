@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 supabase/.temp/
+.vercel/
 *.local
 .env
 .env.*
