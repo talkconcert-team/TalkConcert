@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { checkAdmin, checkAudience } from '../lib/adminAuth'
+import { notifyError } from '../lib/toast'
 
 export default function AuthCallback() {
   const [message, setMessage] = useState('Google 로그인을 확인하고 있어요…')
@@ -21,6 +22,7 @@ export default function AuthCallback() {
         if (active) window.location.replace(['/', '/admin', '/presenter'].includes(next) ? next : '/')
       } catch (error) {
         if (error.status === 403) await supabase.auth.signOut({ scope: 'local' })
+        notifyError(error.message)
         if (active) { window.history.replaceState(null, '', '/auth/callback'); setMessage(error.message) }
       }
     }

@@ -5,6 +5,7 @@ import { syncQuestionOwnership } from '../questionOwnership'
 import { supabase } from '../../lib/supabase'
 import { checkAdmin, checkAudience, signInWithGoogle } from '../../lib/adminAuth'
 import { questionNickname } from '../questionNickname'
+import { notifyError, notifySuccess } from '../../lib/toast'
 import { withTimeout } from '../../lib/requestTimeout'
 
 function loadComposeIntent() {
@@ -89,7 +90,7 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
     try {
       sessionStorage.setItem('talkconcert-compose-intent', JSON.stringify({ columnId, color, draft }))
       await signInWithGoogle('/')
-    } catch (error) { setNotice(error.message); setLoggingIn(false) }
+    } catch (error) { setNotice(error.message); notifyError(error.message); setLoggingIn(false) }
   }
 
   useEffect(() => {
@@ -105,7 +106,7 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
     // 만료된 세션도 제출 직전에 확인한다. 질문 원문은 자동 전송하지 않는다.
     try { await checkAudience() } catch (error) {
       if (!session || error.status === 401 || error.status === 403) { void requestLogin(); return }
-      setNotice(error.message); return
+      setNotice(error.message); notifyError(error.message); return
     }
     if (!draft.trim() || !composeColumn || remote.busy) {
       input.current?.focus()
@@ -120,12 +121,23 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
       color,
       authorName: questionNickname(session?.user),
     }
+    try {
+      const saved = rememberNoteOwner(item.id)
+      item.ownerToken = saved.token
+      setOwners(saved.owners)
+    } catch {
+      const message = '작성자 정보를 저장하지 못했어요. 브라우저 저장소를 허용한 뒤 다시 등록해 주세요.'
+      setNotice(message)
+      notifyError(message)
+      return
+    }
     if (!await remote.mutate('question.create', item)) return
     ownershipRevision.current += 1
     setOwnership((current) => ({ userId: submittingUserId, ids: [...(current.userId === submittingUserId ? current.ids : []), item.id] }))
     pendingSubmission.current = null
     setDraft((current) => current === draft ? '' : current)
-    setNotice('질문을 등록했어요.')
+    setNotice('질문이 Supabase에 등록됐어요.')
+    notifySuccess('질문이 업로드되었습니다.')
     board.current?.scrollTo({ top: 0, behavior: 'smooth' })
     input.current?.focus()
   }

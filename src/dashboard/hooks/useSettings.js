@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { requestSettings } from '../settingsStore'
+import { notifyError, notifySuccess } from '../../lib/toast'
 
 export default function useSettings() {
   const [settings, setSettings] = useState({ draw: false, topics: false })
@@ -30,6 +31,7 @@ export default function useSettings() {
         if (active && started === version.current) {
           retryAfter.current = Date.now() + 30000
           setReadError(error.message)
+          notifyError(error.message)
         }
       }
     }
@@ -56,11 +58,12 @@ export default function useSettings() {
       const saved = await requestSettings({ [key]: enabled })
       if (!mounted.current) return
       setSettings(saved)
-      setNotice('저장했어요.')
+      setNotice('Supabase에 저장했어요.')
+      notifySuccess('설정을 저장했어요.')
       window.dispatchEvent(new Event('talkconcert-settings-saved'))
     } catch (error) {
       // 실패하면 기존 선택을 유지해 저장되지 않은 설정이 적용된 것처럼 보이지 않게 한다.
-      if (mounted.current) setNotice(error.message)
+      if (mounted.current) { setNotice(error.message); notifyError(error.message) }
     } finally {
       writing.current = false
       if (mounted.current) setSaving(false)
