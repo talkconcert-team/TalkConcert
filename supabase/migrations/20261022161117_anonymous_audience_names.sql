@@ -33,7 +33,7 @@ end $$;
 revoke all on function talkconcert_private.submit_anonymous_question(uuid,uuid,text,text,text,text) from public;
 grant execute on function talkconcert_private.submit_anonymous_question(uuid,uuid,text,text,text,text) to anon,authenticated;
 
-create function public.submit_talkconcert_question(p_id uuid,p_topic uuid,p_text text,p_color text,p_owner_token text,p_author_name text) returns boolean
+create or replace function public.submit_talkconcert_question(p_id uuid,p_topic uuid,p_text text,p_color text,p_owner_token text,p_author_name text) returns boolean
 language sql security invoker set search_path = '' as $$
   select talkconcert_private.submit_anonymous_question(p_id,p_topic,p_text,p_color,p_owner_token,p_author_name);
 $$;

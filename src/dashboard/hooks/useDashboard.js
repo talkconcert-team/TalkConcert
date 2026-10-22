@@ -6,6 +6,7 @@ import { loadAudienceName } from '../audienceName'
 import { supabase } from '../../lib/supabase'
 import { checkAdmin } from '../../lib/adminAuth'
 import { withTimeout } from '../../lib/requestTimeout'
+import { notifySuccess } from '../../lib/toast'
 import { loadComposeIntent, saveComposeIntent, loadPendingQuestion, savePendingQuestion } from '../composeStorage'
 
 // 로그인 없이 작성하고, 브라우저의 비밀 토큰으로 본인 메모 이동만 허용한다. 본문 수정·삭제와 주제 관리는 CMS에서 한다.
@@ -117,6 +118,7 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
     savePendingQuestion(null)
     setDraft((current) => current === draft ? '' : current)
     setNotice('질문을 등록했어요.')
+    notifySuccess('질문이 업로드되었습니다.')
     board.current?.scrollTo({ top: 0, behavior: 'smooth' })
     input.current?.focus()
   }
