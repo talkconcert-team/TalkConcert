@@ -3,7 +3,8 @@ export function allowedRequest(request, env) {
   const host = request.headers.host
   if (typeof host !== 'string') return false
   if (env.VERCEL === '1') {
-    const origins = [env.APP_ORIGIN, env.VERCEL_URL && `https://${env.VERCEL_URL}`, env.VERCEL_BRANCH_URL && `https://${env.VERCEL_BRANCH_URL}`, env.VERCEL_PROJECT_PRODUCTION_URL && `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`]
+    // 기존 운영 주소와 승인한 한글 도메인을 함께 허용하며 와일드카드로 넓히지 않는다.
+    const origins = [env.APP_ORIGIN, ...(env.APP_ORIGINS || '').split(',').map((value) => value.trim()), env.VERCEL_URL && `https://${env.VERCEL_URL}`, env.VERCEL_BRANCH_URL && `https://${env.VERCEL_BRANCH_URL}`, env.VERCEL_PROJECT_PRODUCTION_URL && `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`]
     return origins.some((value) => {
       try { const url = new URL(value); return url.protocol === 'https:' && url.host === host } catch { return false }
     })

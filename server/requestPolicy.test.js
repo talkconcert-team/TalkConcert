@@ -26,6 +26,17 @@ test('로컬 환경은 외부 접속과 위조된 프록시 헤더를 신뢰하�
   assert.equal(allowedRequest(request('talkconcert.vercel.app'), { VERCEL: '1' }), false)
 })
 
+test('한글 추가 도메인은 퓨니코드 호스트와 일치할 때만 조회·작성을 허용한다', () => {
+  const env = { ...deployed, APP_ORIGINS: ' https://부소마.서버.한국 ' }
+  const host = new URL('https://부소마.서버.한국').host
+  assert.equal(allowedRequest(request(host), env), true)
+  assert.equal(sameOriginJson(request(host), env), true)
+  assert.equal(allowedRequest(request('talkconcert.vercel.app'), env), true)
+  assert.equal(allowedRequest(request(`${host}.evil.test`), env), false)
+  assert.equal(sameOriginJson(request(host, 'https://attacker.example'), env), false)
+  assert.equal(allowedRequest(request(host), deployed), false)
+})
+
 test('Vercel이 해석한 body와 Node 스트림 모두 크기를 검사한다', async () => {
   assert.deepEqual(await readJsonBody({ body: { topics: true } }, 1024), { topics: true })
   assert.deepEqual(await readJsonBody({ body: '{"topics":true}' }, 1024), { topics: true })
