@@ -1,16 +1,22 @@
 import QuestionMarkdown from './QuestionMarkdown'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from '../../components/Icon'
 import QuestionSlot from './QuestionSlot'
+import { presentationTopic } from '../presentationSelection'
 
 // 직접 고르거나 추첨한 질문을 같은 화면에서 크게 읽는다.
 export default function QuestionPresentation({
   selected,
+  columns,
   slot,
   finishDraw,
   closePresentation,
 }) {
   const dialog = useRef(null)
+  const [visibleQuestion, setVisibleQuestion] = useState(null)
+  const headingQuestion = slot
+    ? visibleQuestion?.requestId === slot.requestId ? visibleQuestion.question : slot.items[0]
+    : selected
 
   useEffect(() => {
     const modal = dialog.current
@@ -37,9 +43,10 @@ export default function QuestionPresentation({
         <Icon name="close" /> 작게 보기
       </button>
       <div className="presentation-content">
-        <span>TalkConcert / 오늘의 질문</span>
+        <span>TalkConcert</span>
+        <h2 className="presentation-topic">{presentationTopic(headingQuestion, columns)}</h2>
         {slot ? (
-          <QuestionSlot key={slot.requestId} slot={slot} onFinish={finishDraw} />
+          <QuestionSlot key={slot.requestId} slot={slot} onFinish={finishDraw} onVisibleQuestion={setVisibleQuestion} />
         ) : (
           selected ? (
             <blockquote>

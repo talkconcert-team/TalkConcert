@@ -4,7 +4,7 @@ import test from 'node:test'
 import { createBoardMiddleware } from './boardApi.js'
 
 const env = { SUPABASE_URL: 'https://test.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'public', SERVER_SETTINGS_ADMIN_TOKEN: 'server-only' }
-const payload = { action: 'question.move', data: { id: '00000000-0000-4000-8000-000000000001', columnId: '00000000-0000-4000-8000-000000000002', after: true } }
+const payload = { action: 'question.move', data: { id: '00000000-0000-4000-8000-000000000001', columnId: '00000000-0000-4000-8000-000000000002', after: true, ownerToken: 'a'.repeat(64) } }
 
 async function fixture(t, admin, audience = true) {
   const calls = []
@@ -30,17 +30,17 @@ test('로그인 없는 관리자 이동은 DB 호출 전에 차단한다', async
   assert.deepEqual(f.calls, [])
 })
 
-test('관객 이동은 브라우저 토큰 없이 계정 소유권 RPC로 검증하고 관리자 RPC를 호출하지 않는다', async (t) => {
+test('관객 이동은 로그인 없이 비밀 토큰으로 검증하고 관리자 RPC를 호출하지 않는다', async (t) => {
   const f = await fixture(t, false)
   assert.equal((await f.post('/api/board')).status, 200)
-  assert.deepEqual(f.calls.map(({ scope, name }) => [scope, name]), [['verified-audience', 'move_talkconcert_question'], ['verified-audience', 'get_talkconcert_board']])
-  assert.equal(f.calls[0].args.p_owner_token, null)
+  assert.deepEqual(f.calls.map(({ scope, name }) => [scope, name]), [['public-read', 'move_talkconcert_question'], ['public-read', 'get_talkconcert_board']])
+  assert.equal(f.calls[0].args.p_owner_token, 'a'.repeat(64))
 })
 
-test('로그인 없는 관객 이동은 작성자 토큰이 있어도 차단한다', async (t) => {
+test('작성자 토큰이 없는 이동은 DB 호출 전에 차단한다', async (t) => {
   const f = await fixture(t, false, false)
-  const response = await f.post('/api/board', { ...payload, data: { ...payload.data, ownerToken: 'a'.repeat(64) } })
-  assert.equal(response.status, 401)
+  const response = await f.post('/api/board', { ...payload, data: { ...payload.data, ownerToken: undefined } })
+  assert.equal(response.status, 400)
   assert.deepEqual(f.calls, [])
 })
 
@@ -57,5 +57,40 @@ test('관리자 이동은 검증된 사용자 DB와 서버 토큰을 사용한�
   assert.deepEqual(await response.json(), { columns: [], questions: [] })
   assert.equal(f.calls[0].scope, 'verified-admin')
   assert.equal(f.calls[0].name, 'move_admin_talkconcert_question')
+  assert.equal(f.calls[0].args.p_token, env.SERVER_SETTINGS_ADMIN_TOKEN)
+})
+
+const submission = { action: 'question.create', data: { ...payload.data, text: '질문입니다.', color: 'cream', authorName: '찬란한 부소마인' } }
+
+test('비로그인 등록은 별명과 토큰을 공개 RPC에 전달한다', async (t) => {
+  const f = await fixture(t, false, false)
+  assert.equal((await f.post('/api/board', submission)).status, 200)
+  assert.equal(f.calls[0].scope, 'public-read')
+  assert.equal(f.calls[0].name, 'submit_talkconcert_question')
+  assert.equal(f.calls[0].args.p_author_name, '찬란한 부소마인')
+  assert.equal(f.calls[0].args.p_owner_token, 'a'.repeat(64))
+})
+
+test('이름 형식이 잘못되면 등록하지 않는다', async (t) => {
+  const f = await fixture(t, false, false)
+  for (const authorName of [undefined, '', '찬란한 관객', '<script> 부소마인']) {
+    assert.equal((await f.post('/api/board', { ...submission, data: { ...submission.data, authorName } })).status, 400)
+  }
+  assert.deepEqual(f.calls, [])
+})
+
+test('작성자 토큰이 있어도 관객 삭제·수정·복구는 허용하지 않는다', async (t) => {
+  const f = await fixture(t, false, false)
+  for (const action of ['question.delete', 'question.update', 'question.restore']) {
+    assert.equal((await f.post('/api/board', { ...submission, action })).status, 400)
+  }
+  assert.deepEqual(f.calls, [])
+})
+
+test('관리자 삭제는 관리자 인증과 서버 토큰을 통해서만 처리한다', async (t) => {
+  const f = await fixture(t, true)
+  assert.equal((await f.post('/api/admin/board', { action: 'question.delete', data: { id: payload.data.id } })).status, 200)
+  assert.equal(f.calls[0].scope, 'verified-admin')
+  assert.equal(f.calls[0].name, 'manage_talkconcert_board')
   assert.equal(f.calls[0].args.p_token, env.SERVER_SETTINGS_ADMIN_TOKEN)
 })

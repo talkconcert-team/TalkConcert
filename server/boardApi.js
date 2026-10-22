@@ -26,16 +26,14 @@ export function createBoardMiddleware(env, factory = createClient) {
     const path = req.url?.split('?')[0]
     if (!['/api/board', '/api/admin/board'].includes(path)) return next()
     const admin = path === '/api/admin/board'
-    const publicRead = !admin && req.method === 'GET'
     if (admin && !req.adminDb) return reply(res, 401, { error: '관리자 로그인이 필요해요.' })
-    if (!admin && !publicRead && !req.audienceDb) return reply(res, 401, { error: 'Google 로그인이 필요해요.' })
     if (!allowedRequest(req, env)) return reply(res, 403, { error: '허용된 행사 주소에서 접속해 주세요.' })
     if (!['GET', 'POST'].includes(req.method)) return reply(res, 405, { error: '지원하지 않는 요청이에요.' })
     if (!env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY || (admin && !env.SERVER_SETTINGS_ADMIN_TOKEN)) return reply(res, 503, { error: 'Supabase 연결 정보를 확인해 주세요.' })
     try {
-      const db = publicRead
+      const db = !admin
         ? (publicDb ??= factory(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } }))
-        : admin ? req.adminDb : req.audienceDb
+        : req.adminDb
       let action = 'snapshot'
       let data = {}
       if (req.method === 'POST') {
@@ -44,7 +42,8 @@ export function createBoardMiddleware(env, factory = createClient) {
         action = body?.action
         data = body?.data
         if (!validBoardAction(action, data) || (!admin && !['question.create', 'question.move'].includes(action))) return reply(res, 400, { error: '내용·주제·색을 확인해 주세요.' })
-        if (!admin && data.ownerToken != null && !/^[0-9a-f]{64}$/.test(data.ownerToken)) return reply(res, 400, { error: '작성자 확인 정보를 확인해 주세요.' })
+        if (!admin && (typeof data.ownerToken !== 'string' || !/^[0-9a-f]{64}$/.test(data.ownerToken))) return reply(res, 400, { error: '작성자 확인 정보를 확인해 주세요.' })
+        if (!admin && action === 'question.create' && (typeof data.authorName !== 'string' || !/^[가-힣]{1,16} 부소마인$/.test(data.authorName))) return reply(res, 400, { error: '작성자 이름을 확인해 주세요.' })
       }
       let result
       if (admin) {
@@ -62,7 +61,7 @@ export function createBoardMiddleware(env, factory = createClient) {
       } else {
         result = action === 'question.move'
           ? await db.rpc('move_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_target: data.targetId || null, p_after: data.after, p_owner_token: data.ownerToken || null })
-          : await db.rpc('submit_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_text: data.text.trim(), p_color: data.color, p_owner_token: data.ownerToken || null })
+          : await db.rpc('submit_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_text: data.text.trim(), p_color: data.color, p_author_name: data.authorName, p_owner_token: data.ownerToken || null })
         if (!result.error) result = await db.rpc('get_talkconcert_board')
       }
       if (result.error) {

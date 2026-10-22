@@ -32,8 +32,8 @@ export const verifyAudience = (request, env, factory = createClient) => verifyGo
 export function createAuthMiddleware(env, factory = createClient) {
   return async (request, response, next) => {
     const path = request.url?.split('?')[0]
-    // 관객 보드는 공개로 읽고, 작성·이동에만 Google 세션을 요구한다.
-    if (path === '/api/board' && request.method === 'GET') return next()
+    // 관객 보드는 로그인 없이 이용한다. 관리자 API의 Google 검증은 유지한다.
+    if (path === '/api/board') return next()
     const admin = path === '/api/auth/admin' || path?.startsWith('/api/admin/')
     const audience = path === '/api/auth/audience' || path === '/api/board' || path === '/api/board/ownership'
     if (!admin && !audience) return next()

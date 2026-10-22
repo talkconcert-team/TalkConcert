@@ -11,8 +11,7 @@ export default function DashboardHeader({
   isPresenter,
   signedIn,
   accountEmail,
-  requestLogin,
-  loggingIn,
+  authorName,
 }) {
   return (
     <>
@@ -28,7 +27,7 @@ export default function DashboardHeader({
           </span>
           <span className="demo-label">{isPresenter ? '진행 화면' : '관객 화면'}</span>
           {isPresenter && <a className="admin-settings-link" href="/admin">관리자 설정</a>}
-          {signedIn ? <><span className="account-label" title={accountEmail} aria-label={`로그인 계정: ${accountEmail}`}>{accountEmail}</span><AdminSignOut returnTo={isPresenter ? '/admin' : '/'} /></> : <button className="text-button" disabled={loggingIn} onClick={() => requestLogin()}>Google로 로그인</button>}
+          {isPresenter && signedIn ? <><span className="account-label" title={accountEmail} aria-label={`로그인 계정: ${accountEmail}`}>{accountEmail}</span><AdminSignOut returnTo={isPresenter ? '/admin' : '/'} /></> : !isPresenter && <span className="account-label">{authorName}</span>}
         </div>
       </header>
       <div className="toolbar">

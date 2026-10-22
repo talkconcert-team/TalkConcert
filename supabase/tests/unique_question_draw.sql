@@ -31,6 +31,7 @@ begin
     insert into public.talkconcert_questions(topic_id,text) values(v_topic,'추첨 트랜잭션 테스트 '||i);
   end loop;
   v_first := public.draw_talkconcert_question(v_request,'draw-transaction-test');
+  assert v_first#>>'{draw,question,topicTitle}'=(select title from public.talkconcert_topics where id=v_topic), '당첨 주제명을 함께 저장해야 함';
   assert jsonb_array_length(v_first->'remainingIds')=2;
   v_id := (v_first#>>'{draw,question,id}')::uuid;
   begin
@@ -41,6 +42,7 @@ begin
   v_seen := array_append(v_seen,v_id);
   update public.talkconcert_questions set text='수정해도 다시 뽑히지 않음',deleted_at=now() where id=v_id;
   update public.talkconcert_questions set deleted_at=null where id=v_id;
+  update public.talkconcert_topics set title='추첨 이후 변경한 제목' where id=v_topic;
   v_result := public.draw_talkconcert_question(v_request,'draw-transaction-test');
   assert v_result->'draw'=v_first->'draw', '재시도는 수정 전 당첨 스냅샷을 재사용해야 함';
   for i in 1..2 loop

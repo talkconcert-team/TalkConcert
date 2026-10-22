@@ -34,8 +34,7 @@ export default function App({ isPresenter = false }) {
           isPresenter={isPresenter}
           signedIn={state.signedIn}
           accountEmail={state.accountEmail}
-          requestLogin={state.requestLogin}
-          loggingIn={state.loggingIn}
+          authorName={state.authorName}
         />
         {isPresenter && savedSettings.error && <p className="settings-warning" role="status">{savedSettings.error}</p>}
         {state.error && <p className="settings-warning" role="status">{state.error}</p>}
@@ -53,9 +52,8 @@ export default function App({ isPresenter = false }) {
             submit={state.submit}
             notice={state.notice}
             busy={state.busy || !state.loaded || !state.columns.length}
-            signedIn={state.signedIn}
-            requestLogin={state.requestLogin}
-            loggingIn={state.loggingIn}
+            posting={state.posting}
+            authorName={state.authorName}
           />}
           <QuestionBoard
             questions={state.questions}
@@ -80,6 +78,7 @@ export default function App({ isPresenter = false }) {
       {state.presenting && (
         <QuestionPresentation
           selected={state.selected}
+          columns={state.columns}
           slot={state.slot}
           finishDraw={state.finishDraw}
           closePresentation={state.closePresentation}

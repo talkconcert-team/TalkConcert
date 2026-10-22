@@ -35,14 +35,14 @@ test('검증된 관리자 요청에만 사용자별 DB 클라이언트를 제공
   assert.equal(result.user.id, 'verified-id')
   assert.ok(result.db)
 })
-test('보드 읽기는 공개하고 관객 쓰기와 관리자 API는 로그인을 검사한다', async (t) => {
+test('관객 보드는 로그인 없이 통과하고 관리자 API는 로그인을 검사한다', async (t) => {
   const auth = createAuthMiddleware(env, factory(true))
   const server = createServer((req, res) => auth(req, res, () => { res.writeHead(200); res.end(req.adminDb ? 'admin' : 'audience') }))
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
   t.after(() => new Promise((resolve) => { server.closeAllConnections(); server.close(resolve) }))
   const url = `http://127.0.0.1:${server.address().port}`
   for (const path of ['/api/admin/settings', '/api/admin/board', '/api/auth/admin', '/api/auth/audience', '/api/board/ownership']) assert.equal((await fetch(url + path)).status, 401)
-  assert.equal((await fetch(url + '/api/board', { method: 'POST' })).status, 401)
+  assert.equal((await fetch(url + '/api/board', { method: 'POST' })).status, 200)
   assert.equal(await (await fetch(url + '/api/board')).text(), 'audience')
   assert.equal(await (await fetch(url + '/api/board', { headers: { Authorization: 'Bearer forged' } })).text(), 'audience')
   assert.equal(await (await fetch(url + '/api/board', { headers: { Authorization: 'Bearer valid' } })).text(), 'audience')

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createSlotDraw, slotTiming } from './slotDraw.js'
+import { createSlotDraw, slotTiming, visibleSlotIndex } from './slotDraw.js'
 
 test('DB 결과가 없으면 브라우저에서 대신 추첨하지 않는다', () => {
   assert.equal(createSlotDraw([{ id: 'a' }], null), null)
@@ -33,4 +33,22 @@ test('마지막 미추첨 질문도 기존 보드 전체를 굴리고 DB 결과�
 
 test('일반 슬롯은 기존 6초 연출과 주변 질문이 사라질 시간을 보장한다', () => {
   assert.deepEqual(slotTiming(), { roll: 6000, finish: 6650 })
+})
+
+test('추첨 중 제목은 CSS 트랙 중앙 질문을 따라가고 마지막에는 당첨 주제로 멈춘다', () => {
+  const questions = [
+    { id: 'a', columnId: 'shin' },
+    { id: 'b', columnId: 'lee' },
+    { id: 'c', columnId: 'both' },
+  ]
+  const slot = createSlotDraw(questions, { id: 'winner', columnId: 'lee', topicTitle: '이지우 선배에게 질문하기' })
+  for (const height of [190, 240]) {
+    for (let i = 0; i <= slot.targetIndex; i++) {
+      assert.equal(visibleSlotIndex(-(i + 0.5) * height, height, slot.items.length), i)
+    }
+    const last = visibleSlotIndex(-(slot.targetIndex + 0.5) * height, height, slot.items.length)
+    assert.equal(slot.items[last].topicTitle, '이지우 선배에게 질문하기')
+  }
+  assert.equal(visibleSlotIndex(100, 190, slot.items.length), 0)
+  assert.equal(visibleSlotIndex(-100000, 190, slot.items.length), slot.items.length - 1)
 })

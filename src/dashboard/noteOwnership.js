@@ -7,11 +7,11 @@ export function loadNoteOwners(storage) {
   } catch { return {} }
 }
 
-export function rememberNoteOwner(id, storage = localStorage) {
+export function rememberNoteOwner(id, storage = localStorage, previousToken) {
   const owners = loadNoteOwners(storage)
-  const token = owners[id] || Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) => byte.toString(16).padStart(2, '0')).join('')
+  const token = owners[id] || previousToken || Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) => byte.toString(16).padStart(2, '0')).join('')
   const next = { ...owners, [id]: token }
-  // 저장이 차단되면 작성자 이동 권한을 잃지 않도록 등록 전에 오류를 알린다.
+  // 저장이 막히면 호출부에서 같은 토큰을 메모리에 유지해 재시도한다.
   storage.setItem(key, JSON.stringify(next))
   return { owners: next, token }
 }

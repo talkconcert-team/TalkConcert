@@ -34,7 +34,7 @@ export default function NoteCard({
       <div className="memo-top">
         <span className="note-author">
           <span>
-            {item.own ? '내 질문' : '익명 관객 · #' + String(item.number)}
+            {item.authorName || '부소마인'} · #{item.number}{item.own ? ' · 내 질문' : ''}
           </span>
         </span>
         {item.movable && (

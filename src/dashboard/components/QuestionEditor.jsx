@@ -57,6 +57,8 @@ export default function QuestionEditor({
           }
         : { bold: false, italic: false, list: false, count: 0 },
   })
+  // 복원한 본문은 첫 편집 이벤트 전에도 글자 수와 제출 가능 상태에 반영한다.
+  const count = editor?.getText().length || 0
 
   useEffect(() => {
     if (!editor) return
@@ -64,8 +66,8 @@ export default function QuestionEditor({
     if (!draft && editor.getText().trim()) editor.commands.clearContent(false)
   }, [draft, editor])
   useEffect(() => {
-    onValidityChange(state.count > 0 && state.count <= 240)
-  }, [state.count, onValidityChange])
+    onValidityChange(count > 0 && count <= 240)
+  }, [count, onValidityChange])
 
   const formats = [
     ['bold', '굵게', Bold, () => editor.chain().focus().toggleBold().run()],
@@ -110,9 +112,9 @@ export default function QuestionEditor({
             </button>
           ))}
         </div>
-        <span>{state.count} / 240</span>
+        <span>{count} / 240</span>
       </div>
-      {state.count > 240 && (
+      {count > 240 && (
         <p className="notice" role="status">
           240자 이내로 줄여주세요.
         </p>

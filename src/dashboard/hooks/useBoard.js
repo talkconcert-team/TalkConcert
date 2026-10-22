@@ -3,7 +3,7 @@ import { sessionHeaders } from '../../lib/adminAuth'
 import { requestJson } from '../../lib/requestTimeout'
 
 export async function boardRequest(admin, action, data) {
-  const headers = admin || action ? await sessionHeaders() : {}
+  const headers = admin ? await sessionHeaders() : {}
   const { response, data: result } = await requestJson(admin ? '/api/admin/board' : '/api/board', {
     cache: 'no-store',
     headers: { ...headers, ...(action ? { 'Content-Type': 'application/json' } : {}) },

@@ -81,6 +81,7 @@ svg { flex-shrink: 0; }
 .outline-button:hover { background: #f3f3f3; }
 .presentation { --presentation-question-size: clamp(26px, 4vw, 70px); width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; color: inherit; position: fixed; inset: 0; z-index: 50; background: #fafafa; padding: 10vw; display: flex; flex-direction: column; justify-content: center; }
 .presentation-content { display: flex; flex-direction: column; min-width: 0; }
+.presentation-topic { margin: 12px 0 0; font-size: clamp(25px, 3.5vw, 52px); line-height: 1.25; font-weight: 700; overflow-wrap: anywhere; }
 .presentation-content > span, .presentation-content > p { color: #888; }
 .presentation blockquote { width: 100%; height: min(48svh, 360px); flex-shrink: 0; display: flex; align-items: center; font-size: var(--presentation-question-size); line-height: 1.4; margin: 30px 0; white-space: pre-wrap; min-height: 0; overflow-wrap: anywhere; overflow-y: auto; }
 .close-preview { position: absolute; right: 25px; top: 25px; }

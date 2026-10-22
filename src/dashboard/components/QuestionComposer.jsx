@@ -16,9 +16,8 @@ export default function QuestionComposer({
   submit,
   notice,
   busy,
-  signedIn,
-  requestLogin,
-  loggingIn,
+  posting,
+  authorName,
 }) {
   const [valid, setValid] = useState(false)
 
@@ -39,7 +38,7 @@ export default function QuestionComposer({
           <p className="muted">
             색을 고르고, 궁금한 점을 남겨보세요.
             <br />
-            다른 사람들의 질문도 함께 볼 수 있어요.
+            로그인 없이 참여할 수 있어요. 삭제는 관리자만 가능해요.
           </p>
         </div>
       </div>
@@ -47,8 +46,7 @@ export default function QuestionComposer({
         <form
           className="note-form"
           onSubmit={(event) => {
-            if (!signedIn) { event.preventDefault(); void requestLogin() }
-            else if (valid) submit(event)
+            if (valid) submit(event)
             else event.preventDefault()
           }}
         >
@@ -69,17 +67,14 @@ export default function QuestionComposer({
           </select>
           <div className="draft-note" style={noteStyle(color)}>
             <div className="note-author">
-              <span>익명의 관객</span>
+              <span>{authorName}</span>
             </div>
-            {signedIn ? <QuestionEditor
+            <QuestionEditor
               draft={draft}
               setDraft={setDraft}
               input={input}
               onValidityChange={setValid}
-            /> : <button type="button" className="draft-login-trigger" disabled={loggingIn} onClick={() => requestLogin()}>
-              <span>지금 떠오른 질문을 여기에 적어주세요…</span>
-              <small>질문 작성은 Google 로그인 후 가능해요.</small>
-            </button>}
+            />
           </div>
           <fieldset className="note-options">
             <legend>메모지 색</legend>
@@ -103,9 +98,9 @@ export default function QuestionComposer({
           <button
             type="submit"
             className="primary-button post-note"
-            disabled={busy || loggingIn || (signedIn && (!valid || !draft.trim()))}
+            disabled={busy || !valid || !draft.trim()}
           >
-            <Icon name="plus" size={17} /> {loggingIn ? 'Google로 이동 중…' : signedIn ? '보드에 붙이기' : 'Google로 로그인하고 질문 쓰기'}
+            <Icon name="plus" size={17} /> {posting ? '등록 중…' : '보드에 붙이기'}
           </button>
           <p className="notice" role="status">
             {notice}

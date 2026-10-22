@@ -1,35 +1,31 @@
 import { useEffect, useRef, useState } from 'react'
 import useQuestionDraw from './useQuestionDraw'
 import useBoard from './useBoard'
-import { syncQuestionOwnership } from '../questionOwnership'
+import { loadNoteOwners, rememberNoteOwner } from '../noteOwnership'
+import { loadAudienceName } from '../audienceName'
 import { supabase } from '../../lib/supabase'
-import { checkAdmin, checkAudience, signInWithGoogle } from '../../lib/adminAuth'
+import { checkAdmin } from '../../lib/adminAuth'
 import { withTimeout } from '../../lib/requestTimeout'
+import { loadComposeIntent, saveComposeIntent, loadPendingQuestion, savePendingQuestion } from '../composeStorage'
 
-function loadComposeIntent() {
-  try { return JSON.parse(sessionStorage.getItem('talkconcert-compose-intent') || 'null') || {} } catch { return {} }
-}
-
-// 작성·본인 메모 이동·추첨을 DB에 연결한다. 본문 수정·삭제와 주제 관리는 CMS에서 한다.
+// 로그인 없이 작성하고, 브라우저의 비밀 토큰으로 본인 메모 이동만 허용한다. 본문 수정·삭제와 주제 관리는 CMS에서 한다.
 export default function useDashboard({ canDraw = false, isPresenter = false } = {}) {
   const [notice, setNotice] = useState('')
   const remote = useBoard()
   const { columns } = remote
-  const [ownership, setOwnership] = useState({ userId: null, ids: [] })
-  const ownershipRevision = useRef(0)
+  const [owners, setOwners] = useState(loadNoteOwners)
+  const [authorName] = useState(loadAudienceName)
   const [session, setSession] = useState(supabase ? undefined : null)
-  const [loggingIn, setLoggingIn] = useState(false)
   const [audienceAdmin, setAudienceAdmin] = useState(false)
   const canManageMoves = isPresenter || audienceAdmin
-  const owns = (id) => Boolean(session?.user.id && ownership.userId === session.user.id && ownership.ids.includes(id))
-  const questions = remote.questions.map((item) => ({ ...item, own: owns(item.id), movable: Boolean(session) && (canManageMoves || owns(item.id)) }))
+  const owns = (id) => Boolean(owners[id])
+  const questions = remote.questions.map((item) => ({ ...item, own: owns(item.id), movable: canManageMoves || owns(item.id) }))
   useEffect(() => {
-    if (!supabase) return
+    if (!supabase || !isPresenter) return
     let active = true
     let revision = 0
     const verify = async () => {
       const current = ++revision
-      const ownedVersion = ownershipRevision.current
       let allowed = false
       try {
         const { data, error } = await withTimeout(() => supabase.auth.getSession())
@@ -37,15 +33,9 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
         if (!active || current !== revision) return
         setSession(data.session)
         if (data.session) {
-          const [admin, owned] = await Promise.allSettled([checkAdmin(), syncQuestionOwnership()])
-          allowed = admin.status === 'fulfilled'
-          if (active && current === revision) {
-            if (owned.status === 'fulfilled') {
-              // 새 질문 등록 전에 시작한 조회가 등록 직후의 '내 질문' 표시를 지우지 않게 한다.
-              if (ownedVersion === ownershipRevision.current) setOwnership({ userId: data.session.user.id, ids: owned.value })
-            } else setNotice(owned.reason.message)
-          }
-        } else setOwnership({ userId: null, ids: [] })
+          await checkAdmin()
+          allowed = true
+        }
       } catch (error) { if (active && current === revision) setNotice(error.message) }
       if (active && current === revision) setAudienceAdmin(allowed)
     }
@@ -64,9 +54,14 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
   }, [isPresenter])
   const [preferredColumn, setComposeColumn] = useState(() => loadComposeIntent().columnId || '')
   const composeColumn = columns.some((column) => column.id === preferredColumn) ? preferredColumn : (columns[0]?.id || '')
-  const pendingSubmission = useRef(null)
+  const pendingSubmission = useRef(loadPendingQuestion())
+  const submitting = useRef(false)
+  const [posting, setPosting] = useState(false)
   const [draft, setDraft] = useState(() => loadComposeIntent().draft || '')
   const [color, setColor] = useState(() => loadComposeIntent().color || 'cream')
+  useEffect(() => {
+    if (!isPresenter) saveComposeIntent({ columnId: preferredColumn, draft, color })
+  }, [preferredColumn, draft, color, isPresenter])
   const presentation = useQuestionDraw({ canDraw, questions, setNotice })
   const input = useRef(null)
   const board = useRef(null)
@@ -78,50 +73,48 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
 
   function composeIn(id) {
     setComposeColumn(id)
-    if (!session) { void requestLogin(id); return }
     input.current?.focus()
   }
-
-  async function requestLogin(columnId = composeColumn) {
-    if (loggingIn) return
-    setLoggingIn(true)
-    try {
-      sessionStorage.setItem('talkconcert-compose-intent', JSON.stringify({ columnId, color, draft }))
-      await signInWithGoogle('/')
-    } catch (error) { setNotice(error.message); setLoggingIn(false) }
-  }
-
-  useEffect(() => {
-    if (!session || !remote.loaded || !sessionStorage.getItem('talkconcert-compose-intent')) return
-    sessionStorage.removeItem('talkconcert-compose-intent')
-    input.current?.focus()
-  }, [session, remote.loaded])
 
   async function submit(event) {
     event.preventDefault()
-    const submittingUserId = session?.user.id
-    if (!submittingUserId) { void requestLogin(); return }
-    // 만료된 세션도 제출 직전에 확인한다. 질문 원문은 자동 전송하지 않는다.
-    try { await checkAudience() } catch (error) {
-      if (!session || error.status === 401 || error.status === 403) { void requestLogin(); return }
-      setNotice(error.message); return
-    }
-    if (!draft.trim() || !composeColumn || remote.busy) {
+    if (!draft.trim() || !composeColumn || remote.busy || submitting.current) {
       input.current?.focus()
       return
     }
-    const fingerprint = JSON.stringify([submittingUserId, composeColumn, draft.trim(), color])
+    const fingerprint = JSON.stringify([composeColumn, draft.trim(), color, authorName])
     if (pendingSubmission.current?.fingerprint !== fingerprint) pendingSubmission.current = { fingerprint, id: crypto.randomUUID() }
+    let ownerToken
+    try {
+      const saved = rememberNoteOwner(pendingSubmission.current.id, undefined, pendingSubmission.current.token || owners[pendingSubmission.current.id])
+      ownerToken = saved.token
+      pendingSubmission.current.token = ownerToken
+      setOwners((current) => ({ ...current, ...saved.owners }))
+    } catch {
+      // 저장소가 차단되어도 참여를 막지 않는다. 현재 화면에서만 작성자 이동 권한을 유지한다.
+      pendingSubmission.current.token ||= owners[pendingSubmission.current.id] || Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) => byte.toString(16).padStart(2, '0')).join('')
+      ownerToken = pendingSubmission.current.token
+      const id = pendingSubmission.current.id
+      setOwners((current) => ({ ...current, [id]: ownerToken }))
+    }
     const item = {
+      authorName,
+      ownerToken,
       id: pendingSubmission.current.id,
       columnId: composeColumn,
       text: draft.trim(),
       color,
     }
-    if (!await remote.mutate('question.create', item)) return
-    ownershipRevision.current += 1
-    setOwnership((current) => ({ userId: submittingUserId, ids: [...(current.userId === submittingUserId ? current.ids : []), item.id] }))
+    savePendingQuestion(pendingSubmission.current)
+    submitting.current = true
+    setPosting(true)
+    setNotice('질문을 등록하고 있어요…')
+    let saved
+    try { saved = await remote.mutate('question.create', item) }
+    finally { submitting.current = false; setPosting(false) }
+    if (!saved) { setNotice('등록을 완료하지 못했어요. 내용을 유지했으니 다시 시도해 주세요.'); return }
     pendingSubmission.current = null
+    savePendingQuestion(null)
     setDraft((current) => current === draft ? '' : current)
     setNotice('질문을 등록했어요.')
     board.current?.scrollTo({ top: 0, behavior: 'smooth' })
@@ -129,11 +122,10 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
   }
 
   async function moveQuestion(id, destination) {
-    if (!session) { void requestLogin(); return false }
     if (remote.busy || (!canManageMoves && !owns(id))) return false
     setNotice('메모 위치를 저장하고 있어요…')
     const saved = await remote.mutate('question.move', {
-      id, columnId: destination.columnId, targetId: destination.id || null,
+      id, ownerToken: owners[id], columnId: destination.columnId, targetId: destination.id || null,
       after: Boolean(destination.after),
     }, { asAdmin: canManageMoves })
     if (saved) {
@@ -152,8 +144,7 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
     canManageMoves,
     signedIn: Boolean(session),
     accountEmail: session?.user.email || '',
-    loggingIn,
-    requestLogin,
+    authorName,
     columns,
     composeColumn,
     setComposeColumn,
@@ -165,6 +156,7 @@ export default function useDashboard({ canDraw = false, isPresenter = false } = 
     notice: remote.error || notice,
     error: remote.error,
     busy: remote.busy,
+    posting,
     loaded: remote.loaded,
     setNotice,
     input,
