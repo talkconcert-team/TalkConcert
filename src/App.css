@@ -310,3 +310,9 @@ h3.column-title { margin: 0; }
   .header-actions .count-pill, .header-actions .demo-label { display: none; }
   .account-label { max-width: min(170px, 45vw); margin-right: auto; }
 }
+
+.auth-callback { display: grid; place-items: center; min-height: 100svh; padding: 24px; }
+.auth-callback-card { width: min(100%, 420px); padding: 32px; background: #fff; border: 1px solid #e5e5eb; border-radius: 16px; box-shadow: 0 8px 32px #28244008; }
+.auth-callback-card h1 { margin: 28px 0 0; color: #303039; font-size: 22px; }
+.auth-callback-card [role="status"] { line-height: 1.8; overflow-wrap: anywhere; }
+.auth-callback-card .primary-button { width: 100%; min-height: 42px; background: #6961eb; border-color: #6961eb; }

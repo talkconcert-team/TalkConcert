@@ -1,4 +1,5 @@
--- 관객 계정은 학교 도메인으로 제한하지 않고, 이메일 @ 앞부분을 학번으로 사용한다.
+-- 관객은 학교 Google 계정으로 제한하고, 이메일 @ 앞부분을 작성자 표시에 사용한다.
+-- 아직 배포되지 않은 마이그레이션이 최신 학교 도메인 정책을 되돌리지 않도록 유지한다.
 create or replace function talkconcert_private.is_audience() returns boolean
 language sql stable security definer set search_path = '' as $$
   select exists (
@@ -6,7 +7,7 @@ language sql stable security definer set search_path = '' as $$
     join auth.users u on u.id = i.user_id
     join auth.sessions s on s.user_id = i.user_id and s.id::text = (select auth.jwt()->>'session_id')
     where i.user_id = (select auth.uid()) and i.provider = 'google'
-      and u.email is not null
+      and lower(u.email) ~ '^[^@[:space:]]+@bssm[.]hs[.]kr$'
       and u.email_confirmed_at is not null and not u.is_anonymous
       and coalesce((i.identity_data->>'email_verified')::boolean, false)
       and (s.not_after is null or s.not_after > now())

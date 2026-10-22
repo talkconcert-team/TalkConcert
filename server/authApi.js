@@ -17,6 +17,10 @@ async function verifyGoogle(request, env, factory, admin) {
     })
     const { data, error } = await db.auth.getUser(match[1])
     if (error || !data?.user) return { status: 401, error: '로그인이 만료되었어요. 다시 로그인해 주세요.' }
+    // Google 인증 서버가 확인한 이메일만 검사한다. 사용자 편집 가능한 메타데이터는 사용하지 않는다.
+    if (!admin && !/^[^@\s]+@bssm\.hs\.kr$/i.test(data.user.email || '')) {
+      return { status: 403, error: 'bssm.hs.kr 계정이 아니므로 로그인에 실패하였습니다. 학교 Google 계정으로 다시 로그인해 주세요.' }
+    }
     const allowed = await db.rpc(admin ? 'is_talkconcert_admin' : 'is_talkconcert_audience')
     if (allowed.error) return { status: 503, error: '로그인 권한을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.' }
     if (allowed.data !== true) return { status: 403, error: admin ? '관리자로 허용된 Google 계정이 아니에요.' : 'Google 계정으로 다시 로그인해 주세요.' }
