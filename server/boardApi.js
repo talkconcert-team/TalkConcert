@@ -3,12 +3,13 @@ import { allowedRequest, sameOriginJson, readJsonBody } from './requestPolicy.js
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const colors = /^(cream|rose|mint|sky|lavender|white|#[0-9a-f]{6})$/i
-const actions = new Set(['topic.create', 'topic.update', 'topic.delete', 'question.create', 'question.update', 'question.delete', 'question.restore', 'question.move'])
+const actions = new Set(['topic.create', 'topic.update', 'topic.delete', 'question.create', 'question.update', 'question.delete', 'question.restore', 'question.move', 'answer.save'])
 
 export function validBoardAction(action, data) {
   if (!actions.has(action) || !data || typeof data !== 'object' || Array.isArray(data)) return false
   if (action !== 'topic.create' && !uuid.test(data.id)) return false
   if (['topic.create', 'topic.update'].includes(action)) return typeof data.title === 'string' && data.title.trim().length > 0 && data.title.trim().length <= 40
+  if (action === 'answer.save') return typeof data.text === 'string' && data.text.trim().length > 0 && data.text.length <= 4000
   if (action === 'topic.delete') return !data.targetId || uuid.test(data.targetId)
   if (action === 'question.move') return uuid.test(data.columnId) && (!data.targetId || uuid.test(data.targetId)) && typeof data.after === 'boolean'
   if (['question.create', 'question.update'].includes(action)) return uuid.test(data.columnId) && typeof data.text === 'string' && data.text.trim().length > 0 && data.text.length <= 4000 && typeof data.color === 'string' && colors.test(data.color)
@@ -52,7 +53,10 @@ export function createBoardMiddleware(env, factory = createClient) {
           if (allowed.error) return reply(res, 502, { error: '주제 관리 설정을 확인하지 못했어요.' })
           if (!allowed.data?.topics) return reply(res, 403, { error: '기능 설정에서 주제 관리를 이용 가능으로 바꿔 주세요.' })
         }
-        if (action === 'question.move') {
+        if (action === 'answer.save') {
+          result = await db.rpc('save_talkconcert_answer', { p_question: data.id, p_text: data.text.trim() })
+          if (!result.error) result = await db.rpc('manage_talkconcert_board', { p_action: 'snapshot', p_data: {}, p_token: env.SERVER_SETTINGS_ADMIN_TOKEN })
+        } else if (action === 'question.move') {
           result = await req.adminDb.rpc('move_admin_talkconcert_question', { p_id: data.id, p_topic: data.columnId, p_target: data.targetId || null, p_after: data.after, p_token: env.SERVER_SETTINGS_ADMIN_TOKEN })
           if (!result.error) result = await db.rpc('get_talkconcert_board')
         } else result = await req.adminDb.rpc('manage_talkconcert_board', { p_action: action, p_data: data, p_token: env.SERVER_SETTINGS_ADMIN_TOKEN })
@@ -65,9 +69,24 @@ export function createBoardMiddleware(env, factory = createClient) {
         if (!result.error) result = await db.rpc('get_talkconcert_board')
       }
       if (result.error) {
+        if (action === 'answer.save' && result.error.code === 'PGRST202') return reply(res, 503, { error: '답변 저장 기능이 아직 준비되지 않았어요.' })
+        if (action === 'answer.save' && result.error.code === '42501') return reply(res, 403, { error: '답변 작성 권한과 관리자 표시 이름을 확인해 주세요.' })
         if (result.error.code === '42501') return reply(res, 403, { error: '본인이 작성한 메모만 이동할 수 있어요.' })
         const known = ['22023', 'P0002', '23514', '23502', '23503'].includes(result.error.code)
         return reply(res, known ? 409 : 502, { error: known ? (result.error.code === '22023' || result.error.code === 'P0002' ? result.error.message : '입력 내용을 확인해 주세요.') : 'Supabase 작업 결과를 확인하지 못했어요. 목록을 다시 확인해 주세요.' })
+      }
+      // 마이그레이션 미적용 상태에서도 기존 질문 보드는 계속 사용할 수 있다.
+      if (Array.isArray(result.data?.questions)) {
+        const answers = await db.rpc('get_talkconcert_answers')
+        const unavailable = answers.error?.code === 'PGRST202'
+        if (answers.error && !unavailable) return reply(res, 502, { error: '답변 목록을 불러오지 못했어요. 다시 시도해 주세요.' })
+        if (!unavailable && !Array.isArray(answers.data)) return reply(res, 502, { error: '답변 목록을 확인하지 못했어요.' })
+        const byQuestion = new Map()
+        for (const answer of answers.data || []) {
+          if (!byQuestion.has(answer.questionId)) byQuestion.set(answer.questionId, [])
+          byQuestion.get(answer.questionId).push(answer)
+        }
+        result.data = { ...result.data, answersAvailable: !unavailable, questions: result.data.questions.map((question) => ({ ...question, answers: byQuestion.get(question.id) || [] })) }
       }
       return reply(res, 200, result.data)
     } catch (error) {

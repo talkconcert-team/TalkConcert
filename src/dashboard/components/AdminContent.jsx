@@ -1,3 +1,4 @@
+import { AdminQuestionAnswers } from './QuestionAnswers'
 import { useRef, useState } from 'react'
 import useBoard from '../hooks/useBoard'
 import { noteColors } from '../dashboardData'
@@ -54,7 +55,12 @@ export default function AdminContent({ canManageTopics }) {
   const [notice, setNotice] = useState('')
   async function save(action, data) {
     const success = await board.mutate(action, data)
-    if (success) { setNotice('Supabase에 저장했어요. 보드에 곧 반영됩니다.'); notifySuccess(action === 'question.create' ? '질문이 업로드되었습니다.' : 'Supabase에 저장했어요.'); setDeleting(null) }
+    if (success) {
+      const message = action === 'answer.save' ? '답변을 저장했어요. 질문을 누르면 누구나 볼 수 있어요.' : action === 'question.create' ? '질문이 업로드되었습니다.' : '저장했어요. 보드에 곧 반영됩니다.'
+      setNotice(message)
+      notifySuccess(message)
+      setDeleting(null)
+    }
     return success
   }
   const live = board.questions.filter((question) => !question.deletedAt)
@@ -92,6 +98,7 @@ export default function AdminContent({ canManageTopics }) {
             <button className="cms-danger" disabled={board.busy} onClick={() => setDeleting({ kind: 'question', item })}>삭제</button>
           </>}</div>
         </>}
+        {!trash && <AdminQuestionAnswers question={item} available={board.answersAvailable} busy={board.busy} onSave={(data) => save('answer.save', data)} />}
       </article>)}
     </section>
     {deleting && <section className="cms-confirm" role="region" aria-label="삭제 확인">

@@ -317,3 +317,26 @@ h3.column-title { margin: 0; }
 .auth-callback-card h1 { margin: 28px 0 0; color: #303039; font-size: 22px; }
 .auth-callback-card [role="status"] { line-height: 1.8; overflow-wrap: anywhere; }
 .auth-callback-card .primary-button { width: 100%; min-height: 42px; background: #6961eb; border-color: #6961eb; }
+
+/* 질문과 답변을 함께 읽되, 긴 답변과 작은 화면에서는 모달 전체를 스크롤한다. */
+.presentation-with-answers { justify-content: flex-start; overflow-y: auto; padding: 90px max(24px, 8vw) 48px; }
+.presentation-with-answers blockquote { height: auto; max-height: none; overflow: visible; }
+.memo-indicators { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.answer-dot { display: inline-block; width: 9px; height: 9px; flex-shrink: 0; border-radius: 50%; background: #20a46b; box-shadow: 0 0 0 3px #ffffff9c; }
+.question-answers { border-top: 1px solid #e4e7e5; margin-top: 28px; padding-top: 24px; text-align: left; }
+.question-answers h3 { margin: 0 0 18px; font-size: 18px; letter-spacing: -.4px; }
+.question-answers h3 > span { margin-left: 6px; color: #27815c; font-size: 14px; }
+.question-answer { border: 1px solid #e1e8e3; background: #fff; border-radius: 16px; padding: 22px 24px; margin: 12px 0; }
+.answer-author { display: flex; align-items: center; gap: 10px; font-size: 16px; }
+.answer-author > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #edf6f0; color: #28734e; font-size: 14px; }
+.answer-author small { color: #7d8781; font-size: 12px; }
+.question-answer > p { font-size: 17px; line-height: 1.85; color: #343d37; white-space: pre-wrap; overflow-wrap: anywhere; margin: 16px 0 0; }
+.admin-question-answers { margin-top: 18px; }
+.admin-question-answers .question-answers { margin-top: 16px; }
+.answer-form { display: grid; gap: 12px; margin-top: 18px; }
+.answer-form label { font-weight: 600; font-size: 14px; }
+.answer-form textarea { width: 100%; resize: vertical; min-height: 120px; border: 1px solid #d9dfdb; border-radius: 12px; padding: 14px; font: inherit; line-height: 1.7; }
+.answer-form textarea:focus { outline: 2px solid #91bca2; outline-offset: 2px; }
+.answer-form-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.answer-form-footer small, .answer-unavailable { font-size: 12px; color: #7d8781; }
+@media (max-width: 600px) { .question-answer { padding: 18px; } .question-answer > p { font-size: 16px; } .presentation-with-answers { padding: 84px 20px 32px; } }

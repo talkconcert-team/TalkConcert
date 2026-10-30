@@ -37,6 +37,8 @@ export default function NoteCard({
             {item.authorName || '부소마인'} · #{item.number}{item.own ? ' · 내 질문' : ''}
           </span>
         </span>
+        <div className="memo-indicators">
+        {item.answers?.length > 0 && <span className="answer-dot" role="img" aria-label="관리자 답변 있음" title="관리자 답변 있음" />}
         {item.movable && (
           <button
             type="button"
@@ -54,6 +56,7 @@ export default function NoteCard({
             <Icon name="grip" />
           </button>
         )}
+        </div>
       </div>
       <button
         className="memo-read"

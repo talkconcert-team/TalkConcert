@@ -1,3 +1,4 @@
+import QuestionAnswers from './QuestionAnswers'
 import QuestionMarkdown from './QuestionMarkdown'
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../../components/Icon'
@@ -8,6 +9,7 @@ import { presentationTopic } from '../presentationSelection'
 export default function QuestionPresentation({
   selected,
   columns,
+  questions = [],
   slot,
   finishDraw,
   closePresentation,
@@ -28,7 +30,7 @@ export default function QuestionPresentation({
   return (
     <dialog
       ref={dialog}
-      className="presentation"
+      className={"presentation" + (!slot ? " presentation-with-answers" : "")}
       aria-label="질문 크게 보기"
       onCancel={(event) => {
         event.preventDefault()
@@ -54,6 +56,7 @@ export default function QuestionPresentation({
             </blockquote>
           ) : <p role="status">이 질문은 보드에서 삭제되었어요. 작게 보기를 눌러 다른 질문을 선택해 주세요.</p>
         )}
+        {!slot && selected && <QuestionAnswers answers={questions.find((question) => question.id === selected.id)?.answers || []} />}
       </div>
     </dialog>
   )

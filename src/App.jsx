@@ -77,6 +77,7 @@ export default function App({ isPresenter = false }) {
       </div>}
       {state.presenting && (
         <QuestionPresentation
+          questions={state.questions}
           selected={state.selected}
           columns={state.columns}
           slot={state.slot}
