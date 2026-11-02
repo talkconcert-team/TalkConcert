@@ -1,14 +1,30 @@
 import { useState } from 'react'
+import { Heart } from 'lucide-react'
+import useAnswerLikes from '../hooks/useAnswerLikes'
 
 // 답변은 일반 텍스트로 표시해 입력한 줄바꿈을 보존하고 HTML 실행을 막는다.
-export default function QuestionAnswers({ answers = [] }) {
+export default function QuestionAnswers({ answers = [], allowLikes = false }) {
+  const likes = useAnswerLikes(answers, allowLikes)
   if (!answers.length) return null
   return <section className="question-answers" aria-label="관리자 답변">
     <h3>선배들의 답변 <span>{answers.length}</span></h3>
-    {answers.map((answer) => <article className="question-answer" key={answer.authorName}>
+    {answers.map((answer) => <article className="question-answer" key={answer.answerId || answer.authorName}>
       <div className="answer-author"><span aria-hidden="true">{answer.authorName.slice(0, 1)}</span><strong>{answer.authorName}</strong><small>관리자</small></div>
       <p>{answer.text}</p>
+      {answer.answerId && <div className="answer-reactions">
+        {allowLikes ? <button type="button" className={'answer-like' + (likes.states[answer.answerId]?.liked ? ' is-liked' : '')}
+          disabled={likes.loading || likes.busy || likes.states[answer.answerId]?.liked}
+          aria-label={`${answer.authorName} 답변 ${likes.states[answer.answerId]?.liked ? '좋아요 완료' : '좋아요'}`}
+          title="좋아요는 한 번만 누를 수 있고 취소할 수 없어요."
+          onClick={() => likes.like(answer.answerId)}>
+          <Heart size={16} aria-hidden="true" fill={likes.states[answer.answerId]?.liked ? 'currentColor' : 'none'} />
+          <span>{likes.pending[answer.answerId] ? '저장 중…' : likes.states[answer.answerId]?.liked ? '좋아요 완료' : '좋아요'}</span>
+          <strong>{Math.max(answer.likes || 0, likes.states[answer.answerId]?.likes || 0)}</strong>
+        </button> : <span className="answer-like-count"><Heart size={15} aria-hidden="true" /> 좋아요 {answer.likes || 0}</span>}
+      </div>}
     </article>)}
+    {allowLikes && <p className="answer-like-hint">좋아요는 취소할 수 없어요.</p>}
+    {allowLikes && likes.error && <p className="answer-like-error" role="alert">{likes.error}</p>}
   </section>
 }
 

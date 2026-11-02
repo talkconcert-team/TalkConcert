@@ -64,9 +64,44 @@ test('운영 연결 없이 답변 저장·권한·관리자 이름과 기존 질
   await assert.rejects(db.query('select public.save_talkconcert_answer($1,$2)',[q,'익명']),e=>e.code==='42501')
   await assert.rejects(db.query('select * from talkconcert_private.question_answers'),e=>e.code==='42501')
   await db.exec('reset role')
+  // 운영 답변을 모사한 기존 행을 만든 뒤 좋아요 마이그레이션의 비파괴성을 검사한다.
+  const savedAnswers = (await db.query('select * from talkconcert_private.question_answers order by author_id')).rows
+  const savedQuestions = (await db.query('select * from public.talkconcert_questions order by id')).rows
+  const savedTopics = (await db.query('select * from public.talkconcert_topics order by id')).rows
+  await db.exec(await readFile(root+'supabase/migrations/20261102022024_anonymous_answer_likes.sql','utf8'))
+  assert.deepEqual((await db.query('select * from talkconcert_private.question_answers order by author_id')).rows, savedAnswers)
+  assert.deepEqual((await db.query('select * from public.talkconcert_questions order by id')).rows, savedQuestions)
+  assert.deepEqual((await db.query('select * from public.talkconcert_topics order by id')).rows, savedTopics)
+  await login(null, 'anon')
+  const visibleAnswers = await answers()
+  const firstId = visibleAnswers.find(a => a.authorName === '신희성').answerId
+  const secondId = visibleAnswers.find(a => a.authorName === '이지우').answerId
+  const token = 'a'.repeat(64)
+  const vote = async (id, visitor = token) => (await db.query('select public.like_talkconcert_answer($1,$2) as data', [id,visitor])).rows[0].data
+  const statuses = async () => (await db.query('select public.get_talkconcert_answer_likes($1,$2) as data', [[firstId,secondId],token])).rows[0].data
+  assert.ok((await statuses()).every(a => a.likes === 0 && a.liked === false))
+  assert.deepEqual(await vote(firstId), { answerId: firstId, likes: 1, liked: true })
+  await Promise.all([vote(firstId),vote(firstId)])
+  assert.equal((await vote(firstId)).likes, 1, '중복 요청은 1개로 유지')
+  assert.equal((await vote(secondId)).likes, 1, '관리자별 답변에 독립적으로 투표')
+  assert.equal((await vote(firstId, 'b'.repeat(64))).likes, 2, '다른 브라우저는 별도 집계')
+  assert.ok((await statuses()).every(a => a.liked))
+  await assert.rejects(vote(firstId, ''), e => e.code === '22023')
+  await assert.rejects(vote('00000000-0000-4000-8000-000000000099'), e => e.code === 'P0002')
+  await assert.rejects(db.exec('delete from talkconcert_private.answer_likes'), e => e.code === '42501')
+  await assert.rejects(db.exec('update talkconcert_private.answer_likes set visitor_hash=visitor_hash'), e => e.code === '42501')
+  await assert.rejects(db.exec('select * from talkconcert_private.answer_likes'), e => e.code === '42501')
+  await login(0)
+  await db.query('select public.save_talkconcert_answer($1,$2)', [q, '답변 수정 후에도 좋아요 유지'])
+  assert.equal((await answers()).find(a => a.answerId === firstId).likes, 2)
+  await db.exec('reset role')
+  const hashes = (await db.query('select visitor_hash from talkconcert_private.answer_likes')).rows
+  assert.ok(hashes.every(row => row.visitor_hash !== token && row.visitor_hash.length === 64))
   await db.query('update public.talkconcert_questions set deleted_at=now() where id=$1',[q])
   await login(0)
   assert.equal((await answers()).length,0)
+  assert.deepEqual(await statuses(), [])
+  await assert.rejects(vote(firstId), e => e.code === 'P0002')
   await assert.rejects(db.query('select public.save_talkconcert_answer($1,$2)',[q,'삭제된 질문']),e=>e.code==='P0002')
   await db.exec('reset role')
   await db.query('update public.talkconcert_questions set deleted_at=null where id=$1',[q])
