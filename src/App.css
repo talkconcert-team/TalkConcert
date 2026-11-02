@@ -351,3 +351,26 @@ h3.column-title { margin: 0; }
 .answer-like-count { display: inline-flex; align-items: center; gap: 6px; color: #849087; font-size: 13px; }
 .question-answers .answer-like-hint { color: #8a928d; font-size: 12px; margin: 14px 0 0; }
 .question-answers .answer-like-error { color: #b43c51; font-size: 13px; margin: 10px 0; }
+
+.answer-comments { margin-top: 22px; padding-top: 18px; border-top: 1px solid #edf0ed; }
+.comments-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.comments-heading h4 { margin: 0; font-size: 14px; color: #48564d; }
+.comments-refresh, .comments-toggle, .comments-older { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: #718078; padding: 8px 0; font: inherit; font-size: 12px; cursor: pointer; }
+.comments-refresh:disabled, .comments-older:disabled { cursor: default; opacity: .5; }
+.comments-toggle { margin-top: 14px; }
+.comments-empty { font-size: 13px; color: #8d968f; padding: 12px 0; }
+.comment-list { list-style: none; padding: 0; margin: 8px 0 16px; }
+.answer-comment { padding: 14px 0; border-bottom: 1px solid #f0f2ef; }
+.answer-comment > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; }
+.answer-comment strong { font-size: 13px; font-weight: 600; color: #516059; }
+.answer-comment time { color: #9aa19c; font-size: 11px; }
+.answer-comment p { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.75; color: #4d5650; }
+.comment-form { padding: 14px; border-radius: 12px; background: #f7f9f7; border: 1px solid #e9eee9; }
+.comment-form label { display: block; font-size: 12px; font-weight: 600; color: #65746a; margin-bottom: 8px; }
+.comment-form textarea { width: 100%; min-height: 66px; resize: vertical; border: 0; background: transparent; color: #38463d; font: inherit; font-size: 14px; line-height: 1.7; }
+.comment-form textarea:focus-visible { outline: 2px solid #a1bdaa; outline-offset: 3px; border-radius: 3px; }
+.comment-form-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 8px; }
+.comment-form-footer small { font-size: 11px; color: #8a958e; }
+.comment-form-footer .primary-button { font-size: 12px; min-height: 36px; }
+.comment-error { font-size: 13px; color: #b43c51; }
+.comment-notice { font-size: 13px; color: #41815c; }

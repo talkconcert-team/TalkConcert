@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import AnswerComments from './AnswerComments'
 import { Heart } from 'lucide-react'
 import useAnswerLikes from '../hooks/useAnswerLikes'
 
@@ -22,6 +23,7 @@ export default function QuestionAnswers({ answers = [], allowLikes = false }) {
           <strong>{Math.max(answer.likes || 0, likes.states[answer.answerId]?.likes || 0)}</strong>
         </button> : <span className="answer-like-count"><Heart size={15} aria-hidden="true" /> 좋아요 {answer.likes || 0}</span>}
       </div>}
+      {answer.answerId && <AnswerComments answerId={answer.answerId} readOnly={!allowLikes} />}
     </article>)}
     {allowLikes && <p className="answer-like-hint">좋아요는 취소할 수 없어요.</p>}
     {allowLikes && likes.error && <p className="answer-like-error" role="alert">{likes.error}</p>}
